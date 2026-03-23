@@ -1,0 +1,4 @@
+repository "GreedIsland2 2026-03-22_03-18-15/GreedIsland2@6872821637567@cloud"
+  path "/"
+    br "/main"
+    co "/main"
