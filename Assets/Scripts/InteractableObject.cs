@@ -42,6 +42,10 @@ public class InteractableObject : MonoBehaviour
             else
                 TerminaInterazione();
         }
+
+        // Test temporaneo — premi A per attaccare
+        if (inInterazione && Keyboard.current.aKey.wasPressedThisFrame)
+            CombatManager.Instance.AggiungiAzioneGiocatore(TipoAzione.AttaccoFisico);
     }
 
     System.Collections.IEnumerator IniziaInterazione()
@@ -57,15 +61,17 @@ public class InteractableObject : MonoBehaviour
         Vector3 destinazione = transform.position + direzione * distanzaCombattimento;
         destinazione.y = giocatore.position.y;
 
-        // Attiva il NavMeshAgent e invia il comando di movimento
+        // Attiva il NavMeshAgent e aspetta un frame prima di usarlo
         agente.enabled = true;
+        yield return null;
+
         agente.SetDestination(destinazione);
 
         // Aspetta che il percorso sia calcolato
         yield return new WaitUntil(() => !agente.pathPending);
 
         // Aspetta che il giocatore raggiunga la destinazione
-        while (agente.remainingDistance > 0.1f)
+        while (agente.enabled && agente.remainingDistance > 0.1f)
         {
             yield return null;
         }
@@ -86,6 +92,14 @@ public class InteractableObject : MonoBehaviour
         cameraFollow.ImpostaTargetInterazione(transform, Vector3.zero);
 
         Debug.Log("Combattimento iniziato con: " + gameObject.name);
+        // Avvia il combattimento
+        CombatUnit unitaGiocatore = giocatore.GetComponent<CombatUnit>();
+        CombatUnit unitaMostro = GetComponent<CombatUnit>();
+
+        if (unitaGiocatore != null && unitaMostro != null)
+            CombatManager.Instance.IniziaCombattimento(unitaGiocatore, unitaMostro);
+        else
+            Debug.LogWarning("CombatUnit mancante su giocatore o mostro.");
     }
 
     void TerminaInterazione()
