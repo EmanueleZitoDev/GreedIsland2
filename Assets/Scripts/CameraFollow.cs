@@ -11,6 +11,9 @@ public class CameraFollow : MonoBehaviour
     public float maxDistance = 12f;
     public float zoomSpeed = 1f;
     public float velocitaTransizione = 5f;
+    public float direzioneCombat = 3f;
+    public float latoCombat = 2f;
+    public float altezzaCombat = 2f;
 
     private float currentYaw = 0f;
     private float currentPitch = 15f;
@@ -24,19 +27,28 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
 
-        // Se in modalità interazione, muovi gradualmente la camera verso l'oggetto
         if (inModalitaInterazione && targetInterazione != null)
         {
-            Vector3 posizioneDesiderata = targetInterazione.position + offsetInterazione;
+            // Direzione dal mostro verso il giocatore
+            Vector3 direzione = (target.position - targetInterazione.position).normalized;
 
-            // Sposta gradualmente la camera verso la posizione desiderata
+            // Vettore laterale (perpendicolare alla direzione)
+            Vector3 laterale = Vector3.Cross(direzione, Vector3.up).normalized;
+
+            // Posizione desiderata: dietro il giocatore, spostata di lato e in alto
+            Vector3 posizioneDesiderata = target.position
+                + direzione * direzioneCombat        // dietro il giocatore
+                + laterale * latoCombat         // spostata a destra
+                + Vector3.up * altezzaCombat;      // in alto
+
+            // Sposta gradualmente la camera
             transform.position = Vector3.Lerp(
                 transform.position,
                 posizioneDesiderata,
                 Time.deltaTime * velocitaTransizione
             );
 
-            // Ruota gradualmente la camera verso l'oggetto
+            // Ruota verso il mostro
             Quaternion rotazioneDesiderata = Quaternion.LookRotation(
                 targetInterazione.position - transform.position
             );

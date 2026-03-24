@@ -266,11 +266,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3893294197879345259, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 23.26
+      value: 21.547
       objectReference: {fileID: 0}
     - target: {fileID: 3893294197879345259, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 503
+      value: 510.94
       objectReference: {fileID: 0}
     - target: {fileID: 3893294197879345259, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_LocalRotation.w
@@ -785,6 +785,9 @@ MonoBehaviour:
   maxDistance: 12
   zoomSpeed: 1
   velocitaTransizione: 5
+  direzioneCombat: 3
+  latoCombat: 2
+  altezzaCombat: 4
 --- !u!114 &1177111420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1237,7 +1240,7 @@ Transform:
   m_GameObject: {fileID: 1931681307}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 443.77, y: 22.09, z: 517.2}
+  m_LocalPosition: {x: 438.96, y: 20.08, z: 517.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1256,7 +1259,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
   raggioInterazione: 10
-  offsetCamera: {x: 6, y: 1, z: -5}
+  distanzaCombattimento: 10
+  offsetCamera: {x: -4, y: 2, z: -3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
