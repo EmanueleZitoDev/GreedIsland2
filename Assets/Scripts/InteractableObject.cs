@@ -1,5 +1,6 @@
 using StarterAssets;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
 public class InteractableObject : MonoBehaviour
@@ -9,11 +10,11 @@ public class InteractableObject : MonoBehaviour
 
     [Header("Combattimento")]
     public float distanzaCombattimento = 3f;
-    public Vector3 offsetCamera = new Vector3(-4f, 2f, -3f);
 
     private Transform giocatore;
     private CameraFollow cameraFollow;
     private MonoBehaviour controllerGiocatore;
+    private NavMeshAgent agente;
     private bool inInterazione = false;
     private bool inMovimentoVersoMostro = false;
 
@@ -21,20 +22,15 @@ public class InteractableObject : MonoBehaviour
     {
         giocatore = GameObject.FindWithTag("Player").transform;
         cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        agente = giocatore.GetComponent<NavMeshAgent>();
 
-        // Cerca il controller del giocatore — prova prima con il namespace
         controllerGiocatore = giocatore.GetComponent<StarterAssets.ThirdPersonController>();
-
-        // Se non lo trova, prova senza namespace
         if (controllerGiocatore == null)
             controllerGiocatore = giocatore.GetComponent<ThirdPersonController>();
     }
 
     void Update()
     {
-        if (giocatore == null || cameraFollow == null) return;
-
-        // Ignora input mentre il giocatore si sta muovendo verso il mostro
         if (inMovimentoVersoMostro) return;
 
         float distanza = Vector3.Distance(transform.position, giocatore.position);
@@ -52,36 +48,42 @@ public class InteractableObject : MonoBehaviour
     {
         inMovimentoVersoMostro = true;
 
-        // Blocca il controller mentre gestiamo il movimento manualmente
+        // Disabilita il controller manuale
         if (controllerGiocatore != null)
             controllerGiocatore.enabled = false;
 
-        // Calcola la posizione di destinazione — di fronte al mostro a distanzaCombattimento
+        // Calcola la destinazione davanti al mostro
         Vector3 direzione = (giocatore.position - transform.position).normalized;
         Vector3 destinazione = transform.position + direzione * distanzaCombattimento;
-        destinazione.y = giocatore.position.y; // mantieni la stessa altezza
+        destinazione.y = giocatore.position.y;
 
-        // Gira il giocatore verso il mostro
-        giocatore.LookAt(new Vector3(transform.position.x, giocatore.position.y, transform.position.z));
+        // Attiva il NavMeshAgent e invia il comando di movimento
+        agente.enabled = true;
+        agente.SetDestination(destinazione);
 
-        // Muovi gradualmente il giocatore verso la destinazione
-        float velocitaMovimento = 4f;
-        while (Vector3.Distance(giocatore.position, destinazione) > 0.1f)
+        // Aspetta che il percorso sia calcolato
+        yield return new WaitUntil(() => !agente.pathPending);
+
+        // Aspetta che il giocatore raggiunga la destinazione
+        while (agente.remainingDistance > 0.1f)
         {
-            giocatore.position = Vector3.MoveTowards(
-                giocatore.position,
-                destinazione,
-                velocitaMovimento * Time.deltaTime
-            );
             yield return null;
         }
 
-        // Posizione raggiunta — blocca tutto e attiva la camera di combattimento
-        giocatore.position = destinazione;
+        // Destinazione raggiunta
+        agente.enabled = false;
+
+        // Gira il giocatore verso il mostro
+        giocatore.LookAt(new Vector3(
+            transform.position.x,
+            giocatore.position.y,
+            transform.position.z
+        ));
+
         inMovimentoVersoMostro = false;
         inInterazione = true;
 
-        cameraFollow.ImpostaTargetInterazione(transform, offsetCamera);
+        cameraFollow.ImpostaTargetInterazione(transform, Vector3.zero);
 
         Debug.Log("Combattimento iniziato con: " + gameObject.name);
     }
@@ -91,7 +93,6 @@ public class InteractableObject : MonoBehaviour
         inInterazione = false;
         cameraFollow.RipristinaCamera();
 
-        // Riattiva il movimento del giocatore
         if (controllerGiocatore != null)
             controllerGiocatore.enabled = true;
 
@@ -100,11 +101,8 @@ public class InteractableObject : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // Cerchio giallo — raggio di interazione
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, raggioInterazione);
-
-        // Cerchio rosso — distanza di combattimento
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, distanzaCombattimento);
     }
