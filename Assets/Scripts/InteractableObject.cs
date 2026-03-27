@@ -43,9 +43,9 @@ public class InteractableObject : MonoBehaviour
                 TerminaInterazione();
         }
 
-        // Test temporaneo — premi A per attaccare
-        if (inInterazione && Keyboard.current.aKey.wasPressedThisFrame)
-            CombatManager.Instance.AggiungiAzioneGiocatore(TipoAzione.AttaccoFisico);
+        //// Test temporaneo — premi A per attaccare
+        //if (inInterazione && Keyboard.current.aKey.wasPressedThisFrame)
+        //    CombatManager.Instance.AggiungiAzioneGiocatore(TipoAzione.AttaccoFisico);
     }
 
     System.Collections.IEnumerator IniziaInterazione()
@@ -115,7 +115,7 @@ public class InteractableObject : MonoBehaviour
         CombatUnit unitaMostro = GetComponent<CombatUnit>();
         if (unitaGiocatore != null) unitaGiocatore.NascondiUI();
         if (unitaMostro != null) unitaMostro.NascondiUI();
-
+        CombatUI.Instance.NascondiCombatUI();
         Debug.Log("Combattimento terminato");
     }
 

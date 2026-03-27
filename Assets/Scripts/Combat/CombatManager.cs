@@ -61,6 +61,7 @@ public class CombatManager : MonoBehaviour
         StartCoroutine(GestisciTurno());
         giocatore.MostraUI();
         mostro.MostraUI();
+        CombatUI.Instance.MostraCombatUI();
     }
 
     IEnumerator GestisciTurno()
@@ -172,6 +173,7 @@ public class CombatManager : MonoBehaviour
         Debug.Log(giocatoreHaVinto ? "=== HAI VINTO ===" : "=== HAI PERSO ===");
         giocatore.NascondiUI();
         mostro.NascondiUI();
+        CombatUI.Instance.NascondiCombatUI();
     }
 
     // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore
@@ -184,6 +186,15 @@ public class CombatManager : MonoBehaviour
         Debug.Log("Turno: "+turnoCorrente+"- Azione aggiunta: " + tipo + " — " + azioniGiocatore.Count + "/" + azioniPerTurno);
         if (azioniGiocatore.Count >= azioniPerTurno)
             azioniConfermate = true;
+    }
+
+    public void RimuoviUltimaAzione()
+    {
+        if (azioniGiocatore.Count > 0)
+        {
+            azioniGiocatore.RemoveAt(azioniGiocatore.Count - 1);
+            Debug.Log("Azione rimossa. Azioni in coda: " + azioniGiocatore.Count);
+        }
     }
 
     // Getter pubblici
