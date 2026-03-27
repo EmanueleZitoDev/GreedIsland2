@@ -110,6 +110,12 @@ public class InteractableObject : MonoBehaviour
         if (controllerGiocatore != null)
             controllerGiocatore.enabled = true;
 
+        // Nascondi le UI
+        CombatUnit unitaGiocatore = giocatore.GetComponent<CombatUnit>();
+        CombatUnit unitaMostro = GetComponent<CombatUnit>();
+        if (unitaGiocatore != null) unitaGiocatore.NascondiUI();
+        if (unitaMostro != null) unitaMostro.NascondiUI();
+
         Debug.Log("Combattimento terminato");
     }
 

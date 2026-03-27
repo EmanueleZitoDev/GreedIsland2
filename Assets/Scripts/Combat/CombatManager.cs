@@ -59,6 +59,8 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log("=== COMBATTIMENTO INIZIATO ===");
         StartCoroutine(GestisciTurno());
+        giocatore.MostraUI();
+        mostro.MostraUI();
     }
 
     IEnumerator GestisciTurno()
@@ -78,6 +80,7 @@ public class CombatManager : MonoBehaviour
             // Aspetta che il giocatore abbia riempito la coda
             azioniConfermate = false;
             yield return new WaitUntil(() => azioniConfermate);
+            inFaseSelezione = false; 
             // L'IA sceglie le sue azioni
             ScegliAzioniMostro();
 
@@ -167,6 +170,8 @@ public class CombatManager : MonoBehaviour
     {
         combattimentoAttivo = false;
         Debug.Log(giocatoreHaVinto ? "=== HAI VINTO ===" : "=== HAI PERSO ===");
+        giocatore.NascondiUI();
+        mostro.NascondiUI();
     }
 
     // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore

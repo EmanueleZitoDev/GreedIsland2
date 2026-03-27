@@ -10,6 +10,7 @@ public class CombatUnit : MonoBehaviour
     public int destrezza = 10;
     public int costituzione = 10;
     public int intelligenza = 10;
+    public GameObject canvasUI;
 
     public int GetDestrezza() { return destrezza; }
 
@@ -29,6 +30,8 @@ public class CombatUnit : MonoBehaviour
 
     void Awake()
     {
+        if (canvasUI != null)
+            canvasUI.SetActive(false);
         // Calcola HP massimi — formula dal GDD: Base(Hatsu) + COS × LV
         hpMax = hpBase + (costituzione * livello);
         hpAttuali = hpMax;
@@ -38,6 +41,18 @@ public class CombatUnit : MonoBehaviour
         nenAttuali = nenMax;
 
         AggiornaBarre();
+    }
+
+    public void MostraUI()
+    {
+        if (canvasUI != null)
+            canvasUI.SetActive(true);
+    }
+
+    public void NascondiUI()
+    {
+        if (canvasUI != null)
+            canvasUI.SetActive(false);
     }
 
     // Subisce danni
