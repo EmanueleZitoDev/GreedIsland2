@@ -16,13 +16,19 @@ public class CombatUI : MonoBehaviour
 
     [Header("Pannello Inferiore")]
     public GameObject pannelloPreferiti;
-    public GameObject pannelloContenuto;
 
     [Header("Preferiti")]
     public Button preferito1;
     public Button preferito2;
     public Button preferito3;
     public Button preferito4;
+
+    [Header("Pannello Lista")]
+    public GameObject pulsanteAzioni;       // il blocco AZIONI
+    public GameObject pulsanteCarte;        // il blocco CARTE
+    public GameObject pannelloLista;
+    public Transform contenutoLista;
+    public GameObject templatePulsanteAzione;
 
     private TipoAzione[] azioniInSlot = new TipoAzione[3];
     private bool[] slotOccupato = new bool[3];
@@ -53,6 +59,10 @@ public class CombatUI : MonoBehaviour
         preferito3.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
         preferito4.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
 
+        // Trova i pulsanti Azioni e Carte e collegali
+        GameObject.Find("PulsanteAzioni").GetComponent<Button>().onClick.AddListener(ApriListaAzioni);
+        GameObject.Find("PulsanteCarte").GetComponent<Button>().onClick.AddListener(ApriListaCarte);
+
         AggiornaUI();
     }
 
@@ -61,12 +71,19 @@ public class CombatUI : MonoBehaviour
     {
         gameObject.SetActive(true);
         ResetSlots();
-    }
 
+        // Sblocca e mostra il cursore durante il combattimento
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
     // Chiamato da CombatManager quando finisce il combattimento
     public void NascondiCombatUI()
     {
         gameObject.SetActive(false);
+
+        // Ribloccail cursore quando esci dal combattimento
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     // Seleziona un'azione e la mette nel primo slot libero
@@ -96,6 +113,55 @@ public class CombatUI : MonoBehaviour
         slotOccupato[index] = false;
         CombatManager.Instance.RimuoviUltimaAzione();
         AggiornaUI();
+    }
+
+    // Chiamato dal pulsante AZIONI
+    public void ApriListaAzioni()
+    {
+        // Nascondi i 3 blocchi
+        pannelloPreferiti.SetActive(false);
+        pulsanteAzioni.SetActive(false);
+        pulsanteCarte.SetActive(false);
+
+        // Mostra la lista
+        pannelloLista.SetActive(true);
+
+        // Pulisci e popola la lista
+        foreach (Transform figlio in contenutoLista)
+        {
+            if (figlio.gameObject != templatePulsanteAzione)
+                Destroy(figlio.gameObject);
+        }
+
+        CreaPulsanteAzione("Attacco Fisico", TipoAzione.AttaccoFisico);
+    }
+
+    // Torna ai 3 blocchi
+    public void TornaAlDefault()
+    {
+        pannelloPreferiti.SetActive(true);
+        pulsanteAzioni.SetActive(true);
+        pulsanteCarte.SetActive(true);
+        pannelloLista.SetActive(false);
+    }
+
+    // Chiamato dal pulsante CARTE (per ora placeholder)
+    public void ApriListaCarte()
+    {
+        // Da implementare in Fase 3
+        Debug.Log("Lista carte — da implementare");
+    }
+
+    void CreaPulsanteAzione(string nome, TipoAzione tipo)
+    {
+        GameObject nuovo = Instantiate(templatePulsanteAzione, contenutoLista);
+        nuovo.SetActive(true);
+        nuovo.GetComponentInChildren<TMP_Text>().text = nome;
+        nuovo.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            SelezionaAzione(tipo);
+            TornaAlDefault();
+        });
     }
 
     // Aggiorna la visualizzazione degli slot
