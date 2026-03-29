@@ -14,6 +14,9 @@ public class CombatUI : MonoBehaviour
     [Header("Pulsante Conferma")]
     public GameObject pulsanteConferma;
 
+    [Header("Pulsante Indietro")]
+    public GameObject pulsanteIndietro;
+
     [Header("Pannello Inferiore")]
     public GameObject pannelloPreferiti;
 
@@ -62,6 +65,15 @@ public class CombatUI : MonoBehaviour
         // Trova i pulsanti Azioni e Carte e collegali
         GameObject.Find("PulsanteAzioni").GetComponent<Button>().onClick.AddListener(ApriListaAzioni);
         GameObject.Find("PulsanteCarte").GetComponent<Button>().onClick.AddListener(ApriListaCarte);
+
+        pulsanteIndietro.GetComponent<Button>().onClick.AddListener(TornaAlDefault);
+        pulsanteConferma.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            CombatManager.Instance.ConfermaAzioni();
+            pulsanteConferma.SetActive(false);
+            ResetSlots();
+            TornaAlDefault();
+        });
 
         AggiornaUI();
     }
@@ -125,15 +137,23 @@ public class CombatUI : MonoBehaviour
 
         // Mostra la lista
         pannelloLista.SetActive(true);
+        
+        pulsanteIndietro.SetActive(true);
 
-        // Pulisci e popola la lista
+        //popola la lista
         foreach (Transform figlio in contenutoLista)
+    {
+        Button btn = figlio.GetComponent<Button>();
+        if (btn == null) continue;
+        
+        // Rimuovi tutti i listener esistenti prima di aggiungerne uno nuovo
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(() =>
         {
-            if (figlio.gameObject != templatePulsanteAzione)
-                Destroy(figlio.gameObject);
-        }
-
-        CreaPulsanteAzione("Attacco Fisico", TipoAzione.AttaccoFisico);
+            SelezionaAzione(TipoAzione.AttaccoFisico);
+            //TornaAlDefault();
+        });
+    }
     }
 
     // Torna ai 3 blocchi
@@ -143,6 +163,7 @@ public class CombatUI : MonoBehaviour
         pulsanteAzioni.SetActive(true);
         pulsanteCarte.SetActive(true);
         pannelloLista.SetActive(false);
+        pulsanteIndietro.SetActive(false);
     }
 
     // Chiamato dal pulsante CARTE (per ora placeholder)

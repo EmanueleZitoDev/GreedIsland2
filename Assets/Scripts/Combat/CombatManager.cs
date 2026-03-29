@@ -37,6 +37,7 @@ public class CombatManager : MonoBehaviour
     private bool combattimentoAttivo = false;
     private bool inFaseSelezione = false;
     private bool azioniConfermate = false;
+    private InteractableObject oggettoInterazione;
 
     // Code azioni
     private List<AzioneCombattimento> azioniGiocatore = new List<AzioneCombattimento>();
@@ -50,10 +51,11 @@ public class CombatManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2)
+    public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2, InteractableObject oggetto)
     {
         giocatore = unita1;
         mostro = unita2;
+        oggettoInterazione = oggetto;
         combattimentoAttivo = true;
         turnoCorrente = 1;
 
@@ -170,10 +172,19 @@ public class CombatManager : MonoBehaviour
     void TerminaCombattimento(bool giocatoreHaVinto)
     {
         combattimentoAttivo = false;
-        Debug.Log(giocatoreHaVinto ? "=== HAI VINTO ===" : "=== HAI PERSO ===");
-        giocatore.NascondiUI();
-        mostro.NascondiUI();
-        CombatUI.Instance.NascondiCombatUI();
+
+        if (giocatoreHaVinto)
+            Debug.Log("=== HAI VINTO ===");
+        else
+            Debug.Log("=== HAI PERSO ===");
+
+        // Prima esci dal combattimento
+        if (oggettoInterazione != null)
+            oggettoInterazione.ForzaUscitaCombattimento();
+
+        // Poi distruggi il mostro se hai vinto
+        if (giocatoreHaVinto && mostro != null)
+            Destroy(mostro.gameObject);
     }
 
     // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore
@@ -183,9 +194,19 @@ public class CombatManager : MonoBehaviour
         if (azioniGiocatore.Count >= azioniPerTurno) return;
 
         azioniGiocatore.Add(new AzioneCombattimento(giocatore, mostro, tipo));
-        Debug.Log("Turno: "+turnoCorrente+"- Azione aggiunta: " + tipo + " — " + azioniGiocatore.Count + "/" + azioniPerTurno);
-        if (azioniGiocatore.Count >= azioniPerTurno)
-            azioniConfermate = true;
+        Debug.Log("Turno: " + turnoCorrente + " - Azione aggiunta: " + tipo + " — " + azioniGiocatore.Count + "/" + azioniPerTurno);
+
+        // Non confermare automaticamente — aspetta il pulsante Conferma
+    }
+
+    // Nuovo metodo chiamato dal pulsante Conferma
+    public void ConfermaAzioni()
+    {
+        if (!combattimentoAttivo || !inFaseSelezione) return;
+        if (azioniGiocatore.Count < azioniPerTurno) return;
+
+        azioniConfermate = true;
+        inFaseSelezione = false;
     }
 
     public void RimuoviUltimaAzione()

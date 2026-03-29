@@ -97,7 +97,7 @@ public class InteractableObject : MonoBehaviour
         CombatUnit unitaMostro = GetComponent<CombatUnit>();
 
         if (unitaGiocatore != null && unitaMostro != null)
-            CombatManager.Instance.IniziaCombattimento(unitaGiocatore, unitaMostro);
+            CombatManager.Instance.IniziaCombattimento(unitaGiocatore, unitaMostro, this);
         else
             Debug.LogWarning("CombatUnit mancante su giocatore o mostro.");
     }
@@ -117,6 +117,12 @@ public class InteractableObject : MonoBehaviour
         if (unitaMostro != null) unitaMostro.NascondiUI();
         CombatUI.Instance.NascondiCombatUI();
         Debug.Log("Combattimento terminato");
+    }
+
+    public void ForzaUscitaCombattimento()
+    {
+        if (!inInterazione) return;
+        TerminaInterazione();
     }
 
     void OnDrawGizmosSelected()
