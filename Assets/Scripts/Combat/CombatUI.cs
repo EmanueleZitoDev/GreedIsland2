@@ -1,15 +1,24 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class CombatUI : MonoBehaviour
 {
 	public static CombatUI Instance;
 
 	[Header("Pannello Azioni Selezionate")]
-	public GameObject[] slots;           // Slot1, Slot2, Slot3
-	public TMP_Text[] testiSlot;         // TextMeshPro di ogni slot
-	public Button[] bottoniRimuovi;      // Pulsante X di ogni slot
+	public GameObject pannelloAzioniSelezionate;
+	public GameObject slotTemplate; // il prefab
+
+	// Sostituisce gli array fissi
+	private List<GameObject> slotsAttivi = new List<GameObject>();
+	private List<TMP_Text> testiSlotAttivi = new List<TMP_Text>();
+	private List<Button> bottoniRimuoviAttivi = new List<Button>();
+
+	private TipoAzione[] azioniInSlot;
+	private StanceTipo[] stanceInSlot;
+	private bool[] slotOccupato;
 
 	[Header("Pulsante Conferma")]
 	public GameObject pulsanteConferma;
@@ -41,10 +50,6 @@ public class CombatUI : MonoBehaviour
 	private Color coloreStanceAttiva = new Color(0.2f, 0.6f, 1f);     // blu chiaro = attiva
 	private Color coloreStanceInattiva = new Color(0.8f, 0.8f, 0.8f); // grigio = inattiva
 
-	private TipoAzione[] azioniInSlot = new TipoAzione[3];
-	private StanceTipo[] stanceInSlot = new StanceTipo[3];
-	private bool[] slotOccupato = new bool[3];
-
 	// Stance attualmente selezionata — default Ten
 	private StanceTipo stanceCorrente = StanceTipo.Ten;
 
@@ -60,13 +65,6 @@ public class CombatUI : MonoBehaviour
 
 	void Start()
 	{
-		// Collega i pulsanti X
-		for (int i = 0; i < bottoniRimuovi.Length; i++)
-		{
-			int index = i;
-			bottoniRimuovi[i].onClick.AddListener(() => RimuoviAzione(index));
-		}
-
 		// Collega i preferiti
 		preferito1.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
 		preferito2.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
@@ -98,14 +96,10 @@ public class CombatUI : MonoBehaviour
 	{
 		gameObject.SetActive(true);
 
-		// Adatta gli slot al numero di azioni del giocatore
 		int numAzioni = CombatManager.Instance.giocatore.azioniPerTurno;
-		for (int i = 0; i < slots.Length; i++)
-			slots[i].SetActive(i < numAzioni);
-
+		GeneraSlots(numAzioni);
 		ResetSlots();
 
-		// Reset stance a Ten all'inizio di ogni combattimento
 		stanceCorrente = StanceTipo.Ten;
 		AggiornaPulsantiStance();
 
@@ -224,29 +218,64 @@ public class CombatUI : MonoBehaviour
 	{
 		int azioniSelezionate = 0;
 
-		for (int i = 0; i < slots.Length; i++)
+		for (int i = 0; i < slotsAttivi.Count; i++)
 		{
 			if (slotOccupato[i])
 			{
-				testiSlot[i].text = azioniInSlot[i].ToString() + "\n<size=80%>" + stanceInSlot[i].ToString() + "</size>";
-				bottoniRimuovi[i].gameObject.SetActive(true);
+				testiSlotAttivi[i].text = azioniInSlot[i].ToString() + "\n<size=80%>" + stanceInSlot[i].ToString() + "</size>";
+				bottoniRimuoviAttivi[i].gameObject.SetActive(true);
 				azioniSelezionate++;
 			}
 			else
 			{
-				testiSlot[i].text = "---";
-				bottoniRimuovi[i].gameObject.SetActive(false);
+				testiSlotAttivi[i].text = "---";
+				bottoniRimuoviAttivi[i].gameObject.SetActive(false);
 			}
 		}
 
-		pulsanteConferma.SetActive(azioniSelezionate >= 3);
+		pulsanteConferma.SetActive(azioniSelezionate >= slotsAttivi.Count);
 	}
 
 	void ResetSlots()
 	{
+		if (slotOccupato == null) return;
 		for (int i = 0; i < slotOccupato.Length; i++)
 			slotOccupato[i] = false;
-
 		AggiornaUI();
 	}
+
+	void GeneraSlots(int numAzioni)
+	{
+		// Distruggi slot esistenti
+		foreach (GameObject slot in slotsAttivi)
+			Destroy(slot);
+
+		slotsAttivi.Clear();
+		testiSlotAttivi.Clear();
+		bottoniRimuoviAttivi.Clear();
+
+		// Inizializza array con la dimensione corretta
+		azioniInSlot = new TipoAzione[numAzioni];
+		stanceInSlot = new StanceTipo[numAzioni];
+		slotOccupato = new bool[numAzioni];
+
+		// Crea gli slot dinamicamente
+		for (int i = 0; i < numAzioni; i++)
+		{
+			int index = i;
+			GameObject nuovoSlot = Instantiate(slotTemplate, pannelloAzioniSelezionate.transform);
+			nuovoSlot.SetActive(true);
+
+			TMP_Text testo = nuovoSlot.GetComponentInChildren<TMP_Text>();
+			Button btnRimuovi = nuovoSlot.GetComponentInChildren<Button>();
+
+			btnRimuovi.onClick.RemoveAllListeners();
+			btnRimuovi.onClick.AddListener(() => RimuoviAzione(index));
+
+			slotsAttivi.Add(nuovoSlot);
+			testiSlotAttivi.Add(testo);
+			bottoniRimuoviAttivi.Add(btnRimuovi);
+		}
+	}
+
 }
