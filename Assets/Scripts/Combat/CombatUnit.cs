@@ -39,9 +39,12 @@ public class CombatUnit : MonoBehaviour
     public TMP_Text testoHP;
     public TMP_Text testoNen;
 
+    [Header("Combattimento")]
+    public int azioniPerTurno = 3;
+
     // Stance corrente del combattente — aggiornata ad ogni azione eseguita
     [HideInInspector]
-    public StanceTipo stanzaCorrente = StanceTipo.Ten;
+    public StanceTipo stanceCorrente = StanceTipo.Ten;
 
     void Awake()
     {
@@ -80,14 +83,14 @@ public class CombatUnit : MonoBehaviour
         hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);
         AggiornaBarre();
 
-        Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + " da " + stanzaCorrente + "). HP: " + hpAttuali + "/" + hpMax);
+        //Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + " da " + stanceCorrente + "). HP: " + hpAttuali + "/" + hpMax);
     }
 
     // Calcola la difesa in base alla stance corrente
     // Ten: 10% del Nen attuale — Ren: 20% del Nen attuale
     public int CalcolaDifesa()
     {
-        float percentuale = stanzaCorrente == StanceTipo.Ren ? 0.2f : 0.1f;
+        float percentuale = stanceCorrente == StanceTipo.Ren ? 0.2f : 0.1f;
         return Mathf.FloorToInt(nenAttuali * percentuale);
     }
 
@@ -102,6 +105,7 @@ public class CombatUnit : MonoBehaviour
             return false;
         }
         nenAttuali -= costoRen;
+        //Debug.Log(nomePersonaggio + " consuma " + costoRen + " Nen - Nen attuale: " + nenAttuali);
         AggiornaBarre();
         return true;
     }
@@ -125,7 +129,7 @@ public class CombatUnit : MonoBehaviour
         int regen = Mathf.FloorToInt(0.1f * livello + 0.1f * intelligenza);
         nenAttuali = Mathf.Min(nenMax, nenAttuali + regen);
         AggiornaBarre();
-        Debug.Log(nomePersonaggio + " rigenera " + regen + " Nen.");
+        //Debug.Log(nomePersonaggio + " rigenera " + regen + " Nen.");
     }
 
     // Calcola danno attacco fisico base — formula dal GDD: LV + FOR
@@ -133,7 +137,7 @@ public class CombatUnit : MonoBehaviour
     public int CalcolaDannoBase()
     {
         int dannoBase = livello + forza;
-        if (stanzaCorrente == StanceTipo.Ren)
+        if (stanceCorrente == StanceTipo.Ren)
             dannoBase = Mathf.FloorToInt(dannoBase * 1.1f);
         return dannoBase;
     }

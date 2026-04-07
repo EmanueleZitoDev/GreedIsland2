@@ -589,7 +589,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   giocatore: {fileID: 0}
   mostro: {fileID: 0}
-  azioniPerTurno: 3
 --- !u!4 &111283474
 Transform:
   m_ObjectHideFlags: 0
@@ -1551,7 +1550,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3893294197879345259, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3893294197879345259, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1828,10 +1827,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 44.75
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3126,10 +3125,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 44.75
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -4925,10 +4924,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 44.75
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -7858,13 +7857,14 @@ MonoBehaviour:
   costituzione: 10
   intelligenza: 10
   canvasUI: {fileID: 666221254}
-  hpBase: 50
-  nenBase: 30
+  hpBase: 1000
+  nenBase: 300
   barraHP: {fileID: 730933672}
   barraNen: {fileID: 1297500237}
   testoHP: {fileID: 2030604817}
   testoNen: {fileID: 1526982865}
-  stanzaCorrente: 0
+  azioniPerTurno: 3
+  stanceCorrente: 0
 --- !u!1 &1785379914
 GameObject:
   m_ObjectHideFlags: 0
@@ -8875,13 +8875,14 @@ MonoBehaviour:
   costituzione: 10
   intelligenza: 10
   canvasUI: {fileID: 37323767}
-  hpBase: 100
-  nenBase: 30
+  hpBase: 1000
+  nenBase: 0
   barraHP: {fileID: 146915409}
   barraNen: {fileID: 569246394}
   testoHP: {fileID: 0}
   testoNen: {fileID: 0}
-  stanzaCorrente: 0
+  azioniPerTurno: 3
+  stanceCorrente: 0
 --- !u!1 &1948769645
 GameObject:
   m_ObjectHideFlags: 0
