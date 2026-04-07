@@ -42,10 +42,6 @@ public class InteractableObject : MonoBehaviour
             else
                 TerminaInterazione();
         }
-
-        //// Test temporaneo — premi A per attaccare
-        //if (inInterazione && Keyboard.current.aKey.wasPressedThisFrame)
-        //    CombatManager.Instance.AggiungiAzioneGiocatore(TipoAzione.AttaccoFisico);
     }
 
     System.Collections.IEnumerator IniziaInterazione()
@@ -70,13 +66,21 @@ public class InteractableObject : MonoBehaviour
         // Aspetta che il percorso sia calcolato
         yield return new WaitUntil(() => !agente.pathPending);
 
-        // Aspetta che il giocatore raggiunga la destinazione
+        // Aspetta che il giocatore raggiunga la destinazione, aggiornando l'animazione
+        Animator animatore = giocatore.GetComponent<Animator>();
+
         while (agente.enabled && agente.remainingDistance > 0.1f)
         {
+            if (animatore != null)
+                animatore.SetFloat("Speed", agente.velocity.magnitude);
             yield return null;
         }
 
-        // Destinazione raggiunta
+        // Destinazione raggiunta — resetta l'animazione
+        if (animatore != null)
+            animatore.SetFloat("Speed", 0f);
+
+        // Disattiva il NavMeshAgent
         agente.enabled = false;
 
         // Gira il giocatore verso il mostro
@@ -92,6 +96,7 @@ public class InteractableObject : MonoBehaviour
         cameraFollow.ImpostaTargetInterazione(transform, Vector3.zero);
 
         Debug.Log("Combattimento iniziato con: " + gameObject.name);
+
         // Avvia il combattimento
         CombatUnit unitaGiocatore = giocatore.GetComponent<CombatUnit>();
         CombatUnit unitaMostro = GetComponent<CombatUnit>();

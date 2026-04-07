@@ -27,14 +27,26 @@ public class CombatUI : MonoBehaviour
     public Button preferito4;
 
     [Header("Pannello Lista")]
-    public GameObject pulsanteAzioni;       // il blocco AZIONI
-    public GameObject pulsanteCarte;        // il blocco CARTE
+    public GameObject pulsanteAzioni;
+    public GameObject pulsanteCarte;
     public GameObject pannelloLista;
     public Transform contenutoLista;
     public GameObject templatePulsanteAzione;
 
+    [Header("Stance")]
+    public Button pulsanteTen;
+    public Button pulsanteRen;
+
+    // Colori per feedback visivo dei toggle stance
+    private Color coloreStanceAttiva = new Color(0.2f, 0.6f, 1f);     // blu chiaro = attiva
+    private Color coloreStanceInattiva = new Color(0.8f, 0.8f, 0.8f); // grigio = inattiva
+
     private TipoAzione[] azioniInSlot = new TipoAzione[3];
+    private StanceTipo[] stanceInSlot = new StanceTipo[3];
     private bool[] slotOccupato = new bool[3];
+
+    // Stance attualmente selezionata — default Ten
+    private StanceTipo stanzaCorrente = StanceTipo.Ten;
 
     void Awake()
     {
@@ -44,7 +56,6 @@ public class CombatUI : MonoBehaviour
             Destroy(gameObject);
 
         gameObject.SetActive(false);
-
     }
 
     void Start()
@@ -62,7 +73,7 @@ public class CombatUI : MonoBehaviour
         preferito3.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
         preferito4.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
 
-        // Trova i pulsanti Azioni e Carte e collegali
+        // Collega i pulsanti Azioni e Carte
         GameObject.Find("PulsanteAzioni").GetComponent<Button>().onClick.AddListener(ApriListaAzioni);
         GameObject.Find("PulsanteCarte").GetComponent<Button>().onClick.AddListener(ApriListaCarte);
 
@@ -75,30 +86,58 @@ public class CombatUI : MonoBehaviour
             TornaAlDefault();
         });
 
+        // Collega i pulsanti stance
+        pulsanteTen.onClick.AddListener(() => SelezionaStance(StanceTipo.Ten));
+        pulsanteRen.onClick.AddListener(() => SelezionaStance(StanceTipo.Ren));
+
         AggiornaUI();
+        AggiornaPulsantiStance();
     }
 
-    // Chiamato da CombatManager quando inizia il combattimento
     public void MostraCombatUI()
     {
         gameObject.SetActive(true);
         ResetSlots();
 
-        // Sblocca e mostra il cursore durante il combattimento
+        // Reset stance a Ten all'inizio di ogni combattimento
+        stanzaCorrente = StanceTipo.Ten;
+        AggiornaPulsantiStance();
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-    // Chiamato da CombatManager quando finisce il combattimento
+
     public void NascondiCombatUI()
     {
         gameObject.SetActive(false);
-
-        // Ribloccail cursore quando esci dal combattimento
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    // Seleziona un'azione e la mette nel primo slot libero
+    // Cambia la stance corrente — mutualmente esclusiva
+    public void SelezionaStance(StanceTipo stance)
+    {
+        stanzaCorrente = stance;
+        AggiornaPulsantiStance();
+        Debug.Log("Stance selezionata: " + stanzaCorrente);
+    }
+
+    // Aggiorna il feedback visivo dei pulsanti stance
+    void AggiornaPulsantiStance()
+    {
+        SetColoreBottone(pulsanteTen, stanzaCorrente == StanceTipo.Ten ? coloreStanceAttiva : coloreStanceInattiva);
+        SetColoreBottone(pulsanteRen, stanzaCorrente == StanceTipo.Ren ? coloreStanceAttiva : coloreStanceInattiva);
+    }
+
+    void SetColoreBottone(Button btn, Color colore)
+    {
+        ColorBlock cb = btn.colors;
+        cb.normalColor = colore;
+        cb.selectedColor = colore;
+        btn.colors = cb;
+    }
+
+    // Seleziona un'azione e la mette nel primo slot libero con la stance corrente
     public void SelezionaAzione(TipoAzione tipo)
     {
         if (!CombatManager.Instance.IsInFaseSelezione()) return;
@@ -109,7 +148,8 @@ public class CombatUI : MonoBehaviour
             {
                 slotOccupato[i] = true;
                 azioniInSlot[i] = tipo;
-                CombatManager.Instance.AggiungiAzioneGiocatore(tipo);
+                stanceInSlot[i] = stanzaCorrente;
+                CombatManager.Instance.AggiungiAzioneGiocatore(tipo, stanzaCorrente);
                 AggiornaUI();
                 return;
             }
@@ -127,36 +167,23 @@ public class CombatUI : MonoBehaviour
         AggiornaUI();
     }
 
-    // Chiamato dal pulsante AZIONI
     public void ApriListaAzioni()
     {
-        // Nascondi i 3 blocchi
         pannelloPreferiti.SetActive(false);
         pulsanteAzioni.SetActive(false);
         pulsanteCarte.SetActive(false);
-
-        // Mostra la lista
         pannelloLista.SetActive(true);
-        
         pulsanteIndietro.SetActive(true);
 
-        //popola la lista
         foreach (Transform figlio in contenutoLista)
-    {
-        Button btn = figlio.GetComponent<Button>();
-        if (btn == null) continue;
-        
-        // Rimuovi tutti i listener esistenti prima di aggiungerne uno nuovo
-        btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(() =>
         {
-            SelezionaAzione(TipoAzione.AttaccoFisico);
-            //TornaAlDefault();
-        });
-    }
+            Button btn = figlio.GetComponent<Button>();
+            if (btn == null) continue;
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
+        }
     }
 
-    // Torna ai 3 blocchi
     public void TornaAlDefault()
     {
         pannelloPreferiti.SetActive(true);
@@ -166,10 +193,8 @@ public class CombatUI : MonoBehaviour
         pulsanteIndietro.SetActive(false);
     }
 
-    // Chiamato dal pulsante CARTE (per ora placeholder)
     public void ApriListaCarte()
     {
-        // Da implementare in Fase 3
         Debug.Log("Lista carte — da implementare");
     }
 
@@ -186,6 +211,7 @@ public class CombatUI : MonoBehaviour
     }
 
     // Aggiorna la visualizzazione degli slot
+    // Mostra azione e stance in ogni slot occupato
     void AggiornaUI()
     {
         int azioniSelezionate = 0;
@@ -194,7 +220,7 @@ public class CombatUI : MonoBehaviour
         {
             if (slotOccupato[i])
             {
-                testiSlot[i].text = azioniInSlot[i].ToString();
+                testiSlot[i].text = azioniInSlot[i].ToString() + "\n<size=80%>" + stanceInSlot[i].ToString() + "</size>";
                 bottoniRimuovi[i].gameObject.SetActive(true);
                 azioniSelezionate++;
             }
@@ -205,7 +231,6 @@ public class CombatUI : MonoBehaviour
             }
         }
 
-        // Mostra il pulsante Conferma solo quando tutti gli slot sono pieni
         pulsanteConferma.SetActive(azioniSelezionate >= 3);
     }
 

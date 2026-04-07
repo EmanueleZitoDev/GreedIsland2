@@ -13,12 +13,14 @@ public class AzioneCombattimento
     public CombatUnit esecutore;
     public CombatUnit bersaglio;
     public TipoAzione tipo;
+    public StanceTipo stance;
 
-    public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo)
+    public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo, StanceTipo stance = StanceTipo.Ten)
     {
         this.esecutore = esecutore;
         this.bersaglio = bersaglio;
         this.tipo = tipo;
+        this.stance = stance;
     }
 }
 
@@ -59,6 +61,10 @@ public class CombatManager : MonoBehaviour
         combattimentoAttivo = true;
         turnoCorrente = 1;
 
+        // Reset stance a Ten per entrambi
+        giocatore.stanzaCorrente = StanceTipo.Ten;
+        mostro.stanzaCorrente = StanceTipo.Ten;
+
         Debug.Log("=== COMBATTIMENTO INIZIATO ===");
         StartCoroutine(GestisciTurno());
         giocatore.MostraUI();
@@ -76,14 +82,14 @@ public class CombatManager : MonoBehaviour
             azioniGiocatore.Clear();
             azioniMostro.Clear();
 
-            // Fase selezione — il giocatore sceglie le sue azioni
+            // Fase selezione
             inFaseSelezione = true;
             Debug.Log("Scegli le tue " + azioniPerTurno + " azioni.");
 
-            // Aspetta che il giocatore abbia riempito la coda
             azioniConfermate = false;
             yield return new WaitUntil(() => azioniConfermate);
-            inFaseSelezione = false; 
+            inFaseSelezione = false;
+
             // L'IA sceglie le sue azioni
             ScegliAzioniMostro();
 
@@ -131,25 +137,39 @@ public class CombatManager : MonoBehaviour
 
     IEnumerator EseguiAzione(AzioneCombattimento azione)
     {
+        // Aggiorna la stance corrente dell'esecutore
+        azione.esecutore.stanzaCorrente = azione.stance;
+
+        // Se stance è Ren, consuma 5 Nen
+        // Se non ha abbastanza Nen, l'azione viene eseguita in Ten
+        if (azione.stance == StanceTipo.Ren)
+        {
+            bool renRiuscito = azione.esecutore.ConsumaNenRen();
+            if (!renRiuscito)
+                azione.esecutore.stanzaCorrente = StanceTipo.Ten;
+        }
+
         switch (azione.tipo)
         {
             case TipoAzione.AttaccoFisico:
                 int danno = azione.esecutore.CalcolaDannoBase();
                 azione.bersaglio.SubisciDanno(danno);
                 Debug.Log(azione.esecutore.nomePersonaggio
-                    + " attacca " + azione.bersaglio.nomePersonaggio
-                    + " per " + danno + " danni.");
+                    + " attacca in " + azione.esecutore.stanzaCorrente
+                    + " — " + azione.bersaglio.nomePersonaggio
+                    + " subisce " + danno + " danni lordi.");
                 break;
         }
+
         yield return null;
     }
 
     void ScegliAzioniMostro()
     {
-        // Per ora il mostro fa sempre attacco fisico
+        // Il mostro agisce sempre in Ten per ora
         for (int i = 0; i < azioniPerTurno; i++)
         {
-            azioniMostro.Add(new AzioneCombattimento(mostro, giocatore, TipoAzione.AttaccoFisico));
+            azioniMostro.Add(new AzioneCombattimento(mostro, giocatore, TipoAzione.AttaccoFisico, StanceTipo.Ten));
         }
         Debug.Log("Il mostro ha scelto le sue azioni.");
     }
@@ -174,32 +194,34 @@ public class CombatManager : MonoBehaviour
         combattimentoAttivo = false;
 
         if (giocatoreHaVinto)
+        {
             Debug.Log("=== HAI VINTO ===");
+            if (oggettoInterazione != null)
+                oggettoInterazione.ForzaUscitaCombattimento();
+            if (mostro != null)
+                Destroy(mostro.gameObject);
+        }
         else
+        {
             Debug.Log("=== HAI PERSO ===");
-
-        // Prima esci dal combattimento
-        if (oggettoInterazione != null)
-            oggettoInterazione.ForzaUscitaCombattimento();
-
-        // Poi distruggi il mostro se hai vinto
-        if (giocatoreHaVinto && mostro != null)
-            Destroy(mostro.gameObject);
+            CombatUI.Instance.NascondiCombatUI();
+            if (oggettoInterazione != null)
+                oggettoInterazione.ForzaUscitaCombattimento();
+            //GameOverUI.Instance.Mostra(); — da implementare in futuro
+        }
     }
 
-    // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore
-    public void AggiungiAzioneGiocatore(TipoAzione tipo)
+    // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore con la stance selezionata
+    public void AggiungiAzioneGiocatore(TipoAzione tipo, StanceTipo stance)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
         if (azioniGiocatore.Count >= azioniPerTurno) return;
 
-        azioniGiocatore.Add(new AzioneCombattimento(giocatore, mostro, tipo));
-        Debug.Log("Turno: " + turnoCorrente + " - Azione aggiunta: " + tipo + " — " + azioniGiocatore.Count + "/" + azioniPerTurno);
-
-        // Non confermare automaticamente — aspetta il pulsante Conferma
+        azioniGiocatore.Add(new AzioneCombattimento(giocatore, mostro, tipo, stance));
+        Debug.Log("Turno: " + turnoCorrente + " - Azione aggiunta: " + tipo + " in " + stance + " — " + azioniGiocatore.Count + "/" + azioniPerTurno);
     }
 
-    // Nuovo metodo chiamato dal pulsante Conferma
+    // Chiamato dal pulsante Conferma
     public void ConfermaAzioni()
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;

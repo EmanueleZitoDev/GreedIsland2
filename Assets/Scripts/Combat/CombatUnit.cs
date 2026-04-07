@@ -1,5 +1,12 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+public enum StanceTipo
+{
+    Ten,
+    Ren
+}
 
 public class CombatUnit : MonoBehaviour
 {
@@ -28,10 +35,19 @@ public class CombatUnit : MonoBehaviour
     public Slider barraHP;
     public Slider barraNen;
 
+    [Header("UI Testi")]
+    public TMP_Text testoHP;
+    public TMP_Text testoNen;
+
+    // Stance corrente del combattente — aggiornata ad ogni azione eseguita
+    [HideInInspector]
+    public StanceTipo stanzaCorrente = StanceTipo.Ten;
+
     void Awake()
     {
         if (canvasUI != null)
             canvasUI.SetActive(false);
+
         // Calcola HP massimi — formula dal GDD: Base(Hatsu) + COS × LV
         hpMax = hpBase + (costituzione * livello);
         hpAttuali = hpMax;
@@ -55,15 +71,42 @@ public class CombatUnit : MonoBehaviour
             canvasUI.SetActive(false);
     }
 
-    // Subisce danni
+    // Subisce danni — la difesa viene calcolata dalla stance corrente del difensore
     public void SubisciDanno(int danno)
     {
-        hpAttuali = Mathf.Max(0, hpAttuali - danno);
+        int difesa = CalcolaDifesa();
+        int dannoEffettivo = Mathf.Max(0, danno - difesa);
+
+        hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);
         AggiornaBarre();
-        Debug.Log(nomePersonaggio + " subisce " + danno + " danni. HP: " + hpAttuali + "/" + hpMax);
+
+        Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + " da " + stanzaCorrente + "). HP: " + hpAttuali + "/" + hpMax);
     }
 
-    // Consuma Nen
+    // Calcola la difesa in base alla stance corrente
+    // Ten: 10% del Nen attuale — Ren: 20% del Nen attuale
+    public int CalcolaDifesa()
+    {
+        float percentuale = stanzaCorrente == StanceTipo.Ren ? 0.2f : 0.1f;
+        return Mathf.FloorToInt(nenAttuali * percentuale);
+    }
+
+    // Consuma Nen per l'attivazione di Ren (5 Nen per azione)
+    // Restituisce false se il Nen non è sufficiente
+    public bool ConsumaNenRen()
+    {
+        int costoRen = 5;
+        if (nenAttuali < costoRen)
+        {
+            Debug.Log(nomePersonaggio + " non ha abbastanza Nen per Ren — esegue in Ten.");
+            return false;
+        }
+        nenAttuali -= costoRen;
+        AggiornaBarre();
+        return true;
+    }
+
+    // Consuma Nen generico
     public bool ConsumaNen(int quantita)
     {
         if (nenAttuali < quantita)
@@ -86,9 +129,13 @@ public class CombatUnit : MonoBehaviour
     }
 
     // Calcola danno attacco fisico base — formula dal GDD: LV + FOR
+    // Se la stance è Ren, applica +10% ai danni
     public int CalcolaDannoBase()
     {
-        return livello + forza;
+        int dannoBase = livello + forza;
+        if (stanzaCorrente == StanceTipo.Ren)
+            dannoBase = Mathf.FloorToInt(dannoBase * 1.1f);
+        return dannoBase;
     }
 
     // Controlla se è morto
@@ -111,6 +158,12 @@ public class CombatUnit : MonoBehaviour
             barraNen.maxValue = nenMax;
             barraNen.value = nenAttuali;
         }
+
+        if (testoHP != null)
+            testoHP.text = hpAttuali + "/" + hpMax;
+
+        if (testoNen != null)
+            testoNen.text = nenAttuali + "/" + nenMax;
     }
 
     // Getter pubblici
