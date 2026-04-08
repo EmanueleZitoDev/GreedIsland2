@@ -31,6 +31,7 @@ public class InteractableObject : MonoBehaviour
 
     void Update()
     {
+        if (GameState.inputBloccato) return;
         if (inMovimentoVersoMostro) return;
 
         float distanza = Vector3.Distance(transform.position, giocatore.position);

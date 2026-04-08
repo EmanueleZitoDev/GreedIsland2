@@ -25,6 +25,8 @@ public class CameraFollow : MonoBehaviour
 
     void LateUpdate()
     {
+        if (GameState.inputBloccato) return;
+
         if (target == null) return;
 
         if (inModalitaInterazione && targetInterazione != null)

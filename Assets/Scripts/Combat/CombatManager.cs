@@ -238,9 +238,10 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log("=== HAI PERSO ===");
             CombatUI.Instance.NascondiCombatUI();
-            if (oggettoInterazione != null)
-                oggettoInterazione.ForzaUscitaCombattimento();
-            //GameOverUI.Instance.Mostra(); — da implementare in futuro
+            //if (oggettoInterazione != null)
+            //    oggettoInterazione.ForzaUscitaCombattimento();
+            Debug.Log("GameOverUI.Instance: " + GameOverUI.Instance);
+            GameOverUI.Instance.Mostra();
         }
     }
 
