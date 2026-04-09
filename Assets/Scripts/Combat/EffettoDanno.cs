@@ -14,7 +14,7 @@ public class EffettoDanno : EffettoAbilita
         int statValore = GetStatistica(esecutore);
         int dannoTotale = dannoBase + Mathf.FloorToInt(statValore * moltiplicatoreScaling);
         bersaglio.SubisciDanno(dannoTotale);
-        Debug.Log(esecutore.nomePersonaggio + " infligge " + dannoTotale + " danni a " + bersaglio.nomePersonaggio);
+        //Debug.Log(esecutore.nomePersonaggio + " infligge " + dannoTotale + " danni a " + bersaglio.nomePersonaggio);
     }
 
     int GetStatistica(CombatUnit unita)

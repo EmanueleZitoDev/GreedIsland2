@@ -122,7 +122,7 @@ public class InteractableObject : MonoBehaviour
         if (unitaGiocatore != null) unitaGiocatore.NascondiUI();
         if (unitaMostro != null) unitaMostro.NascondiUI();
         CombatUI.Instance.NascondiCombatUI();
-        Debug.Log("Combattimento terminato");
+        //Debug.Log("Combattimento terminato");
     }
 
     public void ForzaUscitaCombattimento()

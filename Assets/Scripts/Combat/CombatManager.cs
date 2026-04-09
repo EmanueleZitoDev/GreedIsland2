@@ -121,9 +121,9 @@ public class CombatManager : MonoBehaviour
 
             // Esegui le azioni alternando i due combattenti
             int maxAzioni = Mathf.Max(giocatore.azioniPerTurno, mostro.azioniPerTurno);
-            Debug.Log("maxAzioni : " + maxAzioni);
-            Debug.Log("azioniGiocatore.Length : " + azioniGiocatore.Length);
-            Debug.Log("azioniMostro.Length : " + azioniMostro.Length);
+            //Debug.Log("maxAzioni : " + maxAzioni);
+            //Debug.Log("azioniGiocatore.Length : " + azioniGiocatore.Length);
+            //Debug.Log("azioniMostro.Length : " + azioniMostro.Length);
 
             for (int i = 0; i < maxAzioni; i++)
             {
@@ -200,7 +200,7 @@ public class CombatManager : MonoBehaviour
                 EseguiAbilita(azione);
                 break;
         }
-
+        contesto.DecrementaBuffDopoAzione(azione.esecutore);
         yield return null;
     }
 
@@ -271,7 +271,7 @@ public class CombatManager : MonoBehaviour
             CombatUI.Instance.NascondiCombatUI();
             //if (oggettoInterazione != null)
             //    oggettoInterazione.ForzaUscitaCombattimento();
-            Debug.Log("GameOverUI.Instance: " + GameOverUI.Instance);
+            //Debug.Log("GameOverUI.Instance: " + GameOverUI.Instance);
             GameOverUI.Instance.Mostra();
         }
     }
@@ -299,13 +299,13 @@ public class CombatManager : MonoBehaviour
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
         azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, tipo, stance);
-        Debug.Log("Azione aggiunta a slot " + indiceSlot + ": " + tipo + " in " + stance);
+        //Debug.Log("Azione aggiunta a slot " + indiceSlot + ": " + tipo + " in " + stance);
     }
     public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
         azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, TipoAzione.UsaAbilita, stance, abilita);
-        Debug.Log("Turno: " + turnoCorrente + " - Abilità aggiunta: " + abilita.nomeAbilita + " in " + stance);
+        //Debug.Log("Turno: " + turnoCorrente + " - Abilità aggiunta: " + abilita.nomeAbilita + " in " + stance);
     }
     private int GetFirstNullAction(List<AzioneCombattimento> azioniGiocatore)
     {
@@ -327,7 +327,7 @@ public class CombatManager : MonoBehaviour
         {
             if (azioniGiocatore[i] == null)
             {
-                Debug.Log("Slot " + i + " vuoto — conferma non possibile.");
+                //Debug.Log("Slot " + i + " vuoto — conferma non possibile.");
                 return;
             }
         }
@@ -363,7 +363,7 @@ public class CombatManager : MonoBehaviour
     public void RimuoviAzioneAIndice(int index)
     {
         azioniGiocatore[index] = null;
-        Debug.Log("Azione rimossa allo slot " + index);
+        //Debug.Log("Azione rimossa allo slot " + index);
     }
 
     // Getter pubblici

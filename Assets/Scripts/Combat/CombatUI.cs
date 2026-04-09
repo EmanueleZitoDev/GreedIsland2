@@ -166,7 +166,7 @@ public class CombatUI : MonoBehaviour
 
         slotOccupato[index] = false;
         //CombatManager.Instance.RimuoviUltimaAzione();
-        Debug.Log("Rimuovi azione in slot " + index);
+        //Debug.Log("Rimuovi azione in slot " + index);
         CombatManager.Instance.RimuoviAzioneAIndice(index);
         AggiornaUI();
     }
