@@ -24,5 +24,6 @@ public class AbilitaDato : ScriptableObject
     public string[] tags;
 
     [Header("Effetti")]
-    [TextArea] public string effetto;    // Descrizione testuale dell'effetto
+    public EffettoAbilita[] effetti;    // Descrizione testuale dell'effetto
+
 }

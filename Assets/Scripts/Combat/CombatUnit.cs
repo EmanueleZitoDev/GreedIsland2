@@ -131,6 +131,12 @@ public class CombatUnit : MonoBehaviour
         AggiornaBarre();
         //Debug.Log(nomePersonaggio + " rigenera " + regen + " Nen.");
     }
+    public void RiceviCura(int quantita)
+    {
+        hpAttuali = Mathf.Min(hpMax, hpAttuali + quantita);
+        AggiornaBarre();
+        Debug.Log(nomePersonaggio + " recupera " + quantita + " HP. HP: " + hpAttuali + "/" + hpMax);
+    }
 
     // Calcola danno attacco fisico base — formula dal GDD: LV + FOR
     // Se la stance è Ren, applica +10% ai danni

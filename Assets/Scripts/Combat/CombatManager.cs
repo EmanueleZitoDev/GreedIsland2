@@ -5,7 +5,8 @@ using System;
 
 public enum TipoAzione
 {
-    AttaccoFisico
+    AttaccoFisico, 
+    UsaAbilita
     // In futuro: UsaAbilita, UsaCarta, Difesa, ecc.
 }
 
@@ -15,13 +16,15 @@ public class AzioneCombattimento
     public CombatUnit bersaglio;
     public TipoAzione tipo;
     public StanceTipo stance;
+    public AbilitaDato abilita;
 
-    public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo, StanceTipo stance = StanceTipo.Ten)
+    public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo, StanceTipo stance = StanceTipo.Ten, AbilitaDato abilita = null)
     {
         this.esecutore = esecutore;
         this.bersaglio = bersaglio;
         this.tipo = tipo;
         this.stance = stance;
+        this.abilita = abilita;
     }
 }
 
@@ -46,6 +49,8 @@ public class CombatManager : MonoBehaviour
     private AzioneCombattimento[] azioniGiocatore;
     private AzioneCombattimento[] azioniMostro;
 
+    private ContestoCombattimento contesto = new ContestoCombattimento();
+
     void Awake()
     {
         if (Instance == null)
@@ -56,6 +61,7 @@ public class CombatManager : MonoBehaviour
 
     public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2, InteractableObject oggetto)
     {
+        contesto = new ContestoCombattimento();
         giocatore = unita1;
         mostro = unita2;
         oggettoInterazione = oggetto;
@@ -167,7 +173,6 @@ public class CombatManager : MonoBehaviour
         azione.esecutore.stanceCorrente = azione.stance;
 
         // Se stance è Ren, consuma 5 Nen
-        // Se non ha abbastanza Nen, l'azione viene eseguita in Ten
         if (azione.stance == StanceTipo.Ren)
         {
             bool renRiuscito = azione.esecutore.ConsumaNenRen();
@@ -175,26 +180,52 @@ public class CombatManager : MonoBehaviour
                 azione.esecutore.stanceCorrente = StanceTipo.Ten;
         }
 
+        // Aggiorna il contesto
+        contesto.esecutoreAzioneCorrente = azione.esecutore;
+        contesto.bersaglioAzioneCorrente = azione.bersaglio;
+        contesto.tipoAzioneCorrente = azione.tipo;
+
         switch (azione.tipo)
         {
             case TipoAzione.AttaccoFisico:
                 int danno = azione.esecutore.CalcolaDannoBase();
-                //Debug.Log(azione.esecutore.nomePersonaggio
-                //    + " attacca in " + azione.esecutore.stanceCorrente
-                //    + " — " + azione.bersaglio.nomePersonaggio
-                //    + " subisce " + danno + " danni lordi.");
-                Debug.Log(azione.esecutore.nomePersonaggio
-                    + " esegue azione: " + azione.tipo
-                    + " - stance: " + azione.stance
-                    + " - sul bersaglio: " + azione.bersaglio
-                    + " - infligge " + danno + " danni lordi."
-                    );
                 azione.bersaglio.SubisciDanno(danno);
+                Debug.Log(azione.esecutore.nomePersonaggio
+                    + " attacca in " + azione.esecutore.stanceCorrente
+                    + " — " + azione.bersaglio.nomePersonaggio
+                    + " subisce " + danno + " danni lordi.");
+                break;
 
+            case TipoAzione.UsaAbilita:
+                EseguiAbilita(azione);
                 break;
         }
 
         yield return null;
+    }
+
+    void EseguiAbilita(AzioneCombattimento azione)
+    {
+        if (azione.abilita == null) return;
+
+        // Consuma il Nen
+        if (azione.abilita.costoNen > 0)
+        {
+            bool ok = azione.esecutore.ConsumaNen(azione.abilita.costoNen);
+            if (!ok)
+            {
+                Debug.Log("Nen insufficiente per: " + azione.abilita.nomeAbilita);
+                return;
+            }
+        }
+
+        // Esegui ogni effetto se le condizioni sono soddisfatte
+        foreach (var effetto in azione.abilita.effetti)
+        {
+            if (effetto == null) continue;
+            if (effetto.CondizioneSoddisfatta(azione.esecutore, azione.bersaglio, contesto))
+                effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
+        }
     }
 
     void ScegliAzioniMostro()
@@ -270,7 +301,12 @@ public class CombatManager : MonoBehaviour
         azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, tipo, stance);
         Debug.Log("Azione aggiunta a slot " + indiceSlot + ": " + tipo + " in " + stance);
     }
-
+    public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
+    {
+        if (!combattimentoAttivo || !inFaseSelezione) return;
+        azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, TipoAzione.UsaAbilita, stance, abilita);
+        Debug.Log("Turno: " + turnoCorrente + " - Abilità aggiunta: " + abilita.nomeAbilita + " in " + stance);
+    }
     private int GetFirstNullAction(List<AzioneCombattimento> azioniGiocatore)
     {
         for (int i = 0; i < azioniGiocatore.Count; i++)

@@ -86,7 +86,7 @@ public class AbilitaImporter : EditorWindow
             abilita.nomeAbilita = campi[4].Trim();
             abilita.costoNen = int.TryParse(campi[5].Trim(), out int nen) ? nen : 0;
             abilita.isPassiva = campi[6].Trim().ToLower() == "passiva";
-            abilita.effetto = campi[7].Trim();
+            //abilita.effetto = campi[7].Trim();
             abilita.descrizione = campi[8].Trim();
             abilita.tags = campi[9].Trim().Split(',');
             abilita.priorita = int.TryParse(campi[10].Trim(), out int pri) ? pri : 0;
