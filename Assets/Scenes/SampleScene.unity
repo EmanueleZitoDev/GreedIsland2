@@ -589,6 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   giocatore: {fileID: 0}
   mostro: {fileID: 0}
+  attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
 --- !u!4 &111283474
 Transform:
   m_ObjectHideFlags: 0
@@ -5307,6 +5308,7 @@ MonoBehaviour:
   templatePulsanteAzione: {fileID: 1385223547487694076, guid: 1f0442b375c041b4eb06e7d7b2ca2d1c, type: 3}
   pulsanteTen: {fileID: 698695008}
   pulsanteRen: {fileID: 1532812363}
+  attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
 --- !u!114 &1209106635
 MonoBehaviour:
   m_ObjectHideFlags: 0

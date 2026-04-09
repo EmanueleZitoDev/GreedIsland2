@@ -1,13 +1,10 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 public enum TipoAzione
 {
-    AttaccoFisico, 
     UsaAbilita
-    // In futuro: UsaAbilita, UsaCarta, Difesa, ecc.
 }
 
 public class AzioneCombattimento
@@ -36,8 +33,8 @@ public class CombatManager : MonoBehaviour
     public CombatUnit giocatore;
     public CombatUnit mostro;
 
-    [Header("Impostazioni")]
-    //public int azioniPerTurno = 3;
+    [Header("Abilità Base")]
+    public AbilitaDato attaccoFisicoBase;
 
     private int turnoCorrente = 1;
     private bool combattimentoAttivo = false;
@@ -45,7 +42,6 @@ public class CombatManager : MonoBehaviour
     private bool azioniConfermate = false;
     private InteractableObject oggettoInterazione;
 
-    // Code azioni
     private AzioneCombattimento[] azioniGiocatore;
     private AzioneCombattimento[] azioniMostro;
 
@@ -68,11 +64,9 @@ public class CombatManager : MonoBehaviour
         combattimentoAttivo = true;
         turnoCorrente = 1;
 
-        // Inizializza l'array con la dimensione corretta
         azioniGiocatore = new AzioneCombattimento[giocatore.azioniPerTurno];
         azioniMostro = new AzioneCombattimento[mostro.azioniPerTurno];
 
-        // Reset stance a Ten per entrambi
         giocatore.stanceCorrente = StanceTipo.Ten;
         mostro.stanceCorrente = StanceTipo.Ten;
 
@@ -81,6 +75,7 @@ public class CombatManager : MonoBehaviour
         giocatore.MostraUI();
         mostro.MostraUI();
         CombatUI.Instance.MostraCombatUI();
+        //GameOverUI.Instance.Nascondi();
     }
 
     IEnumerator GestisciTurno()
@@ -89,41 +84,22 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log("--- Turno " + turnoCorrente + " ---");
 
-            // Pulizia array
             for (int i = 0; i < azioniGiocatore.Length; i++)
-            {
                 azioniGiocatore[i] = null;
-            }
             for (int i = 0; i < azioniMostro.Length; i++)
-            {
                 azioniMostro[i] = null;
-            }
 
-            // Fase selezione
             inFaseSelezione = true;
-            //Debug.Log("Scegli le tue " + azioniPerTurno + " azioni.");
-
             azioniConfermate = false;
             yield return new WaitUntil(() => azioniConfermate);
             inFaseSelezione = false;
 
-            // L'IA sceglie le sue azioni
             ScegliAzioniMostro();
 
-            //Debug.Log("Azioni confermate. Esecuzione in corso...");
             yield return new WaitForSeconds(0.5f);
 
-            // Determina l'ordine in base alla Destrezza
             bool giocatoreVaPerPrimo = giocatore.GetDestrezza() >= mostro.GetDestrezza();
-            //Debug.Log(giocatoreVaPerPrimo
-            //    ? "Il giocatore ha più Destrezza — agisce per primo."
-            //    : "Il mostro ha più Destrezza — agisce per primo.");
-
-            // Esegui le azioni alternando i due combattenti
             int maxAzioni = Mathf.Max(giocatore.azioniPerTurno, mostro.azioniPerTurno);
-            //Debug.Log("maxAzioni : " + maxAzioni);
-            //Debug.Log("azioniGiocatore.Length : " + azioniGiocatore.Length);
-            //Debug.Log("azioniMostro.Length : " + azioniMostro.Length);
 
             for (int i = 0; i < maxAzioni; i++)
             {
@@ -159,7 +135,6 @@ public class CombatManager : MonoBehaviour
                 }
             }
 
-            // Fine turno — rigenera Nen
             giocatore.RigeneraNen();
             mostro.RigeneraNen();
 
@@ -169,10 +144,10 @@ public class CombatManager : MonoBehaviour
 
     IEnumerator EseguiAzione(AzioneCombattimento azione)
     {
-        // Aggiorna la stance corrente dell'esecutore
+        if (azione == null) yield break;
+
         azione.esecutore.stanceCorrente = azione.stance;
 
-        // Se stance è Ren, consuma 5 Nen
         if (azione.stance == StanceTipo.Ren)
         {
             bool renRiuscito = azione.esecutore.ConsumaNenRen();
@@ -180,26 +155,12 @@ public class CombatManager : MonoBehaviour
                 azione.esecutore.stanceCorrente = StanceTipo.Ten;
         }
 
-        // Aggiorna il contesto
         contesto.esecutoreAzioneCorrente = azione.esecutore;
         contesto.bersaglioAzioneCorrente = azione.bersaglio;
         contesto.tipoAzioneCorrente = azione.tipo;
 
-        switch (azione.tipo)
-        {
-            case TipoAzione.AttaccoFisico:
-                int danno = azione.esecutore.CalcolaDannoBase();
-                azione.bersaglio.SubisciDanno(danno);
-                Debug.Log(azione.esecutore.nomePersonaggio
-                    + " attacca in " + azione.esecutore.stanceCorrente
-                    + " — " + azione.bersaglio.nomePersonaggio
-                    + " subisce " + danno + " danni lordi.");
-                break;
+        EseguiAbilita(azione);
 
-            case TipoAzione.UsaAbilita:
-                EseguiAbilita(azione);
-                break;
-        }
         contesto.DecrementaBuffDopoAzione(azione.esecutore);
         yield return null;
     }
@@ -208,7 +169,6 @@ public class CombatManager : MonoBehaviour
     {
         if (azione.abilita == null) return;
 
-        // Consuma il Nen
         if (azione.abilita.costoNen > 0)
         {
             bool ok = azione.esecutore.ConsumaNen(azione.abilita.costoNen);
@@ -219,7 +179,6 @@ public class CombatManager : MonoBehaviour
             }
         }
 
-        // Esegui ogni effetto se le condizioni sono soddisfatte
         foreach (var effetto in azione.abilita.effetti)
         {
             if (effetto == null) continue;
@@ -230,12 +189,8 @@ public class CombatManager : MonoBehaviour
 
     void ScegliAzioniMostro()
     {
-        // Il mostro agisce sempre in Ten per ora
         for (int i = 0; i < mostro.azioniPerTurno; i++)
-        {
-            azioniMostro[i] = new AzioneCombattimento(mostro, giocatore, TipoAzione.AttaccoFisico, StanceTipo.Ten);
-        }
-        //Debug.Log("Il mostro ha scelto le sue azioni.");
+            azioniMostro[i] = new AzioneCombattimento(mostro, giocatore, TipoAzione.UsaAbilita, StanceTipo.Ten, attaccoFisicoBase);
     }
 
     bool VerificaFine()
@@ -269,106 +224,34 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log("=== HAI PERSO ===");
             CombatUI.Instance.NascondiCombatUI();
-            //if (oggettoInterazione != null)
-            //    oggettoInterazione.ForzaUscitaCombattimento();
-            //Debug.Log("GameOverUI.Instance: " + GameOverUI.Instance);
             GameOverUI.Instance.Mostra();
         }
     }
 
-    // Chiamato dalla UI — aggiunge un'azione alla coda del giocatore con la stance selezionata
-    //public void AggiungiAzioneGiocatore(TipoAzione tipo, StanceTipo stance, int indiceSlot)
-    //{
-    //    if (!combattimentoAttivo || !inFaseSelezione) return;
-    //    if (azioniGiocatore.Count >= azioniPerTurno) return;
-
-    //    if (indiceSlot <= azioniGiocatore.Count)
-    //        azioniGiocatore.Insert(indiceSlot, new AzioneCombattimento(giocatore, mostro, tipo, stance));
-    //    else
-    //        azioniGiocatore.Add(new AzioneCombattimento(giocatore, mostro, tipo, stance));
-
-    //    string debugMsg = string.Empty;
-    //    for (int i = 0; i < azioniGiocatore.Count; i++)
-    //    {
-    //        debugMsg += "\nAzione " + i + ": " + azioniGiocatore[i].tipo + " in " + azioniGiocatore[i].stance;
-    //    }
-    //    Debug.Log(debugMsg);
-    //}
-
-    public void AggiungiAzioneGiocatore(TipoAzione tipo, StanceTipo stance, int indiceSlot)
-    {
-        if (!combattimentoAttivo || !inFaseSelezione) return;
-        azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, tipo, stance);
-        //Debug.Log("Azione aggiunta a slot " + indiceSlot + ": " + tipo + " in " + stance);
-    }
     public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
         azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, TipoAzione.UsaAbilita, stance, abilita);
-        //Debug.Log("Turno: " + turnoCorrente + " - Abilità aggiunta: " + abilita.nomeAbilita + " in " + stance);
-    }
-    private int GetFirstNullAction(List<AzioneCombattimento> azioniGiocatore)
-    {
-        for (int i = 0; i < azioniGiocatore.Count; i++)
-        {
-            if (azioniGiocatore[i] == null)
-                return i;
-        }
-        return 0;
     }
 
-    // Chiamato dal pulsante Conferma
+    public void RimuoviAzioneAIndice(int index)
+    {
+        azioniGiocatore[index] = null;
+    }
+
     public void ConfermaAzioni()
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
 
-        // Verifica che tutti e 3 gli slot siano occupati
         for (int i = 0; i < azioniGiocatore.Length; i++)
         {
-            if (azioniGiocatore[i] == null)
-            {
-                //Debug.Log("Slot " + i + " vuoto — conferma non possibile.");
-                return;
-            }
+            if (azioniGiocatore[i] == null) return;
         }
 
         azioniConfermate = true;
         inFaseSelezione = false;
     }
 
-    //public void RimuoviUltimaAzione()
-    //{
-    //    if (azioniGiocatore.Count > 0)
-    //    {
-    //        azioniGiocatore.RemoveAt(azioniGiocatore.Count - 1);
-    //        //Debug.Log("Azione rimossa. Azioni in coda: " + azioniGiocatore.Count);
-    //    }
-    //}
-
-    //public void RimuoviAzioneAIndice(int index)
-    //{
-    //    if (index >= 0 && index < azioniGiocatore.Count)
-    //    {
-    //        azioniGiocatore.RemoveAt(index);
-    //        Debug.Log("Azione rimossa all'indice " + index + ". Azioni in coda: " + azioniGiocatore.Count);
-    //    }
-    //    string debugMsg = string.Empty;
-    //    for (int i = 0; i < azioniGiocatore.Count; i++)
-    //    {
-    //        debugMsg += "Azione " + i + ": " + azioniGiocatore[i].tipo + " in " + azioniGiocatore[i].stance;
-    //    }
-    //    Debug.Log(debugMsg);
-    //}
-
-    public void RimuoviAzioneAIndice(int index)
-    {
-        azioniGiocatore[index] = null;
-        //Debug.Log("Azione rimossa allo slot " + index);
-    }
-
-    // Getter pubblici
     public bool IsCombattimentoAttivo() { return combattimentoAttivo; }
     public bool IsInFaseSelezione() { return inFaseSelezione; }
-    //public int GetAzioniInCoda() { return azioniGiocatore.Count; }
-
 }

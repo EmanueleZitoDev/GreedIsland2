@@ -15,5 +15,6 @@ MonoBehaviour:
   condizioni:
   - {fileID: 11400000, guid: 9dedd9d437b1fa2458ea9a7cd3dae74c, type: 2}
   dannoBase: 0
-  scaling: 0
-  moltiplicatoreScaling: 5
+  scalings:
+  - statistica: 0
+    moltiplicatore: 5

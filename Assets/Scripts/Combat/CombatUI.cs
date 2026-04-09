@@ -46,6 +46,9 @@ public class CombatUI : MonoBehaviour
     public Button pulsanteTen;
     public Button pulsanteRen;
 
+    [Header("Abilità Base")]
+    public AbilitaDato attaccoFisicoBase;
+
     private AbilitaDato[] abilitaInSlot;
 
     // Colori per feedback visivo dei toggle stance
@@ -68,10 +71,10 @@ public class CombatUI : MonoBehaviour
     void Start()
     {
         // Collega i preferiti
-        preferito1.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
-        preferito2.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
-        preferito3.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
-        preferito4.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
+        preferito1.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
+        preferito2.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
+        preferito3.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
+        preferito4.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
 
         // Collega i pulsanti Azioni e Carte
         GameObject.Find("PulsanteAzioni").GetComponent<Button>().onClick.AddListener(ApriListaAzioni);
@@ -140,23 +143,23 @@ public class CombatUI : MonoBehaviour
     }
 
     // Seleziona un'azione e la mette nel primo slot libero con la stance corrente
-    public void SelezionaAzione(TipoAzione tipo)
-    {
-        if (!CombatManager.Instance.IsInFaseSelezione()) return;
+    //public void SelezionaAzione(TipoAzione tipo)
+    //{
+    //    if (!CombatManager.Instance.IsInFaseSelezione()) return;
 
-        for (int i = 0; i < slotOccupato.Length; i++)
-        {
-            if (!slotOccupato[i])
-            {
-                slotOccupato[i] = true;
-                azioniInSlot[i] = tipo;
-                stanceInSlot[i] = stanceCorrente;
-                CombatManager.Instance.AggiungiAzioneGiocatore(tipo, stanceCorrente, i);
-                AggiornaUI();
-                return;
-            }
-        }
-    }
+    //    for (int i = 0; i < slotOccupato.Length; i++)
+    //    {
+    //        if (!slotOccupato[i])
+    //        {
+    //            slotOccupato[i] = true;
+    //            azioniInSlot[i] = tipo;
+    //            stanceInSlot[i] = stanceCorrente;
+    //            CombatManager.Instance.AggiungiAbilitaGiocatore (tipo, stanceCorrente, i);
+    //            AggiornaUI();
+    //            return;
+    //        }
+    //    }
+    //}
 
     // Rimuove l'azione da uno slot
     public void RimuoviAzione(int index)
@@ -191,14 +194,17 @@ public class CombatUI : MonoBehaviour
         SkillTreePersonaggio skillTree = CombatManager.Instance.giocatore.GetComponent<SkillTreePersonaggio>();
         if (skillTree == null) return;
 
-        // Aggiungi Attacco Fisico come prima opzione
-        GameObject btnAttacco = Instantiate(templatePulsanteAzione, contenutoLista);
-        btnAttacco.SetActive(true);
-        TMP_Text testoAttacco = btnAttacco.GetComponentInChildren<TMP_Text>();
-        if (testoAttacco != null) testoAttacco.text = "Attacco Fisico";
-        Button btnAttaccoBtn = btnAttacco.GetComponent<Button>();
-        btnAttaccoBtn.onClick.RemoveAllListeners();
-        btnAttaccoBtn.onClick.AddListener(() => SelezionaAzione(TipoAzione.AttaccoFisico));
+        // Aggiungi Attacco Fisico Base come prima opzione
+        if (attaccoFisicoBase != null)
+        {
+            GameObject btnAttacco = Instantiate(templatePulsanteAzione, contenutoLista);
+            btnAttacco.SetActive(true);
+            TMP_Text testoAttacco = btnAttacco.GetComponentInChildren<TMP_Text>();
+            if (testoAttacco != null) testoAttacco.text = attaccoFisicoBase.nomeAbilita;
+            Button btnAttaccoBtn = btnAttacco.GetComponent<Button>();
+            btnAttaccoBtn.onClick.RemoveAllListeners();
+            btnAttaccoBtn.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
+        }
 
         foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)
         {
@@ -250,17 +256,17 @@ public class CombatUI : MonoBehaviour
         Debug.Log("Lista carte — da implementare");
     }
 
-    void CreaPulsanteAzione(string nome, TipoAzione tipo)
-    {
-        GameObject nuovo = Instantiate(templatePulsanteAzione, contenutoLista);
-        nuovo.SetActive(true);
-        nuovo.GetComponentInChildren<TMP_Text>().text = nome;
-        nuovo.GetComponent<Button>().onClick.AddListener(() =>
-        {
-            SelezionaAzione(tipo);
-            TornaAlDefault();
-        });
-    }
+    //void CreaPulsanteAzione(string nome, TipoAzione tipo)
+    //{
+    //    GameObject nuovo = Instantiate(templatePulsanteAzione, contenutoLista);
+    //    nuovo.SetActive(true);
+    //    nuovo.GetComponentInChildren<TMP_Text>().text = nome;
+    //    nuovo.GetComponent<Button>().onClick.AddListener(() =>
+    //    {
+    //        SelezionaAzione(tipo);
+    //        TornaAlDefault();
+    //    });
+    //}
 
     // Aggiorna la visualizzazione degli slot
     // Mostra azione e stance in ogni slot occupato

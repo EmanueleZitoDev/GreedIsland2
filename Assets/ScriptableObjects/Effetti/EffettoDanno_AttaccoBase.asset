@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb67ae44108ea8b4980fdc3501a41845, type: 3}
-  m_Name: EffettoDanno
+  m_Name: EffettoDanno_AttaccoBase
   m_EditorClassIdentifier: Assembly-CSharp::EffettoDanno
-  condizioni:
-  - {fileID: 11400000, guid: b14d036d7a23ea042a1c203caeb4f6c3, type: 2}
+  condizioni: []
   dannoBase: 0
   scalings:
-  - statistica: 2
-    moltiplicatore: 5
+  - statistica: 5
+    moltiplicatore: 1
+  - statistica: 0
+    moltiplicatore: 1
