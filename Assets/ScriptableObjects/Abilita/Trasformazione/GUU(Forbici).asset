@@ -34,3 +34,4 @@ MonoBehaviour:
   effetti:
   - {fileID: 11400000, guid: ea09add3de366d140ace19405796062b, type: 2}
   - {fileID: 11400000, guid: ca56805459b9c1d46a9ea34a488fcb1d, type: 2}
+  - {fileID: 11400000, guid: 4115706c42e9b3a48a97e54870aa753d, type: 2}
