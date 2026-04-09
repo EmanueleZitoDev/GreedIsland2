@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: TRASFORMAZIONE_3_1
+  m_Name: GUU(Forbici)
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
   id: TRASFORMAZIONE_3_1
   nomeAbilita: GUU(Forbici)
@@ -31,5 +31,6 @@ MonoBehaviour:
   - '[mani nude]'
   - '[concatenato]'
   - '[Attributo Scelto]'
-  effetto: "Aggiunge buff \"GUU\" temporaneo (durata 2 azioni).\r\nSe hai gi\xE0
-    i buff \"JAN\" e \"KEN\" infligge 5 AUR"
+  effetti:
+  - {fileID: 11400000, guid: ea09add3de366d140ace19405796062b, type: 2}
+  - {fileID: 11400000, guid: ca56805459b9c1d46a9ea34a488fcb1d, type: 2}

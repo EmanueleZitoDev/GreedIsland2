@@ -10,26 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: EMISSIONE_3_1
+  m_Name: JAN (Sasso)
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
-  id: EMISSIONE_3_1
-  nomeAbilita: KEN (Carta)
-  descrizione: "In combinazione con \"JAN (Sasso)\" e \"GUU (Forbici)\" permette
+  id: POTENZIAMENTO_3_1
+  nomeAbilita: JAN (Sasso)
+  descrizione: "In combinazione con \"KEN (Carta)\" e \"GUU (Forbici)\" permette
     di scatenare un forte effetto, a seconda di quale abilit\xE0 viene utilizzata
     per ultima. \xC8 necessario utilizzare le abilit\xE0 di fila (Concatenato)"
-  albero: 1
+  albero: 0
   livelloHatsu: 3
   costoPA: 3
   prerequisiti:
-  - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
+  - {fileID: 11400000, guid: 6e44a8ff9e5ef1d4493c6b523fceca4b, type: 2}
   tipoAzione: 0
   isPassiva: 0
   costoNen: 5
   priorita: 3
   tags:
-  - '[Distanza]'
+  - '[corpo a corpo]'
   - '[nen dipendente]'
   - '[mani nude]'
   - '[concatenato]'
-  effetto: "Aggiunge buff \"KEN\" temporaneo (durata 2 azioni).\r\nSe hai gi\xE0
-    i buff \"JAN\" e \"GUU\" infligge 5 DES"
+  effetti:
+  - {fileID: 11400000, guid: df10216ee79417c44a4b386ae164de75, type: 2}
+  - {fileID: 11400000, guid: 1dcc02f909e5fb149801c8c8fcd78ac2, type: 2}

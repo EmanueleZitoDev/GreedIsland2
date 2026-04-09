@@ -7065,8 +7065,8 @@ MonoBehaviour:
   costituzione: 7
   intelligenza: 8
   canvasUI: {fileID: 666221254}
-  hpBase: 10
-  nenBase: 10
+  hpBase: 120
+  nenBase: 80
   barraHP: {fileID: 730933672}
   barraNen: {fileID: 1297500237}
   testoHP: {fileID: 2030604817}
@@ -7093,6 +7093,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   - {fileID: 11400000, guid: a50a283c47c96454db24cf144d06a62a, type: 2}
   - {fileID: 11400000, guid: 476db106ab13ecb48b197e05c3cb9dd4, type: 2}
+  - {fileID: 11400000, guid: 03f1274b9a1eea84b9a0c851301b7fde, type: 2}
   tutteLeAbilita:
   - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   - {fileID: 11400000, guid: 258c1f5a0cc6a1546a494e3661438f8c, type: 2}

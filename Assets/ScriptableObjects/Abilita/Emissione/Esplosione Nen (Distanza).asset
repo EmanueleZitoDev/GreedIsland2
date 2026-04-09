@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: POTENZIAMENTO_2_2
+  m_Name: Esplosione Nen (Distanza)
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
-  id: POTENZIAMENTO_2_2
-  nomeAbilita: Infusione Nen - Arma
-  descrizione: "Riesci ad infondere le tue armi di Nen, i tuoi attacchi fisici (SOLO
-    ARMI) sono pi\xF9 forti aggiungendo la met\xE0(+0,5) della tua FOR ai danni"
-  albero: 0
+  id: EMISSIONE_2_1
+  nomeAbilita: Esplosione Nen (Distanza)
+  descrizione: Emetti una sfera di Nen che si dirige verso il target selezionato
+    ed Esplode infliggendo danno
+  albero: 1
   livelloHatsu: 2
   costoPA: 2
   prerequisiti:
-  - {fileID: 11400000, guid: 6e44a8ff9e5ef1d4493c6b523fceca4b, type: 2}
+  - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   tipoAzione: 0
-  isPassiva: 1
-  costoNen: 0
-  priorita: 0
+  isPassiva: 0
+  costoNen: 5
+  priorita: 3
   tags:
-  - '[corpo a corpo]'
+  - '[distanza]'
   - '[nen dipendente]'
-  - '[passiva]'
-  - '[arma]'
-  effetto: Corpo a corpo (armi) +0,5 FOR
+  - '[spinta]'
+  - '[target]'
+  effetto: Attacco dalla distanza che infligge 5 + 0,5 DES danni

@@ -10,26 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: POTENZIAMENTO_3_1
+  m_Name: Recupero
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
-  id: POTENZIAMENTO_3_1
-  nomeAbilita: JAN (Sasso)
-  descrizione: "In combinazione con \"KEN (Carta)\" e \"GUU (Forbici)\" permette
-    di scatenare un forte effetto, a seconda di quale abilit\xE0 viene utilizzata
-    per ultima. \xC8 necessario utilizzare le abilit\xE0 di fila (Concatenato)"
+  id: POTENZIAMENTO_2_1
+  nomeAbilita: Recupero
+  descrizione: Utilizzi un'azione per recuperare un ammontare di HP pari a BASE +
+    un terzo (0,3) della tua RES
   albero: 0
-  livelloHatsu: 3
-  costoPA: 3
+  livelloHatsu: 2
+  costoPA: 2
   prerequisiti:
   - {fileID: 11400000, guid: 6e44a8ff9e5ef1d4493c6b523fceca4b, type: 2}
   tipoAzione: 0
   isPassiva: 0
   costoNen: 5
-  priorita: 3
+  priorita: 2
   tags:
-  - '[corpo a corpo]'
+  - '[se stesso]'
   - '[nen dipendente]'
-  - '[mani nude]'
-  - '[concatenato]'
-  effetto: "Aggiunge buff \"JAN\" temporaneo (durata 2 azioni).\r\nSe hai gi\xE0
-    i buff \"KEN\" e \"GUU\" infligge 5 FOR"
+  - '[guarigione]'
+  effetti:
+  - {fileID: 11400000, guid: 02db079e600a88748a52810d7062f78c, type: 2}

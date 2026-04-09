@@ -10,26 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: EMISSIONE_2_2
+  m_Name: KEN (Carta)
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
-  id: EMISSIONE_2_2
-  nomeAbilita: Esplosione Nen (Corpo a corpo) (Counter)
-  descrizione: Emetti un'esplosione di aura che spinge via i nemici in corpo a corpo
-    infliggendo danno
+  id: EMISSIONE_3_1
+  nomeAbilita: KEN (Carta)
+  descrizione: "In combinazione con \"JAN (Sasso)\" e \"GUU (Forbici)\" permette
+    di scatenare un forte effetto, a seconda di quale abilit\xE0 viene utilizzata
+    per ultima. \xC8 necessario utilizzare le abilit\xE0 di fila (Concatenato)"
   albero: 1
-  livelloHatsu: 2
-  costoPA: 2
+  livelloHatsu: 3
+  costoPA: 3
   prerequisiti:
   - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   tipoAzione: 0
   isPassiva: 0
   costoNen: 5
-  priorita: 0
+  priorita: 3
   tags:
-  - '[corpo a corpo]'
+  - '[Distanza]'
   - '[nen dipendente]'
-  - '[Counter]'
-  - '[spinta]'
-  - '[area]'
-  effetto: Esplosione corpo a corpo (area)(corpo a corpo) che infligge 5 + 0,5 AUR
-    danni
+  - '[mani nude]'
+  - '[concatenato]'
+  effetti:
+  - {fileID: 11400000, guid: a10313077ec5d9b4caf4e7b9f0e0a921, type: 2}
+  - {fileID: 11400000, guid: 050feedc24fa8e54092da9cfafbeca05, type: 2}
