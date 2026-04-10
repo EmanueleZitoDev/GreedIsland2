@@ -10,6 +10,7 @@ public class SkillTreePersonaggio : MonoBehaviour
     // Tutte le abilità disponibili per questo Hatsu
     public AbilitaDato[] tutteLeAbilita;
 
+    // Verifica se il personaggio ha abbastanza punti abilità e ha soddisfatto i prerequisiti
     public bool PuoSbloccare(AbilitaDato abilita)
     {
         // Verifica punti sufficienti
@@ -26,6 +27,7 @@ public class SkillTreePersonaggio : MonoBehaviour
         return true;
     }
 
+    // Sblocca l'abilità scalando i punti e aggiungendola alla lista delle sbloccate
     public bool SbloccaAbilita(AbilitaDato abilita)
     {
         if (!PuoSbloccare(abilita)) return false;
@@ -46,6 +48,7 @@ public class SkillTreePersonaggio : MonoBehaviour
         return Mathf.CeilToInt(abilita.costoPA * 100 * moltiplicatore);
     }
 
+    // Restituisce il moltiplicatore costo PA in base alla distanza tra l'Hatsu del personaggio e quello dell'abilità
     float GetMoltiplicatore(TipoHatsu albero)
     {
         // Tabella moltiplicatori dalla stella esagonale

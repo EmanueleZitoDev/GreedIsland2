@@ -16,6 +16,7 @@ public class EffettoDanno : EffettoAbilita
     public ScalingEntry[] scalings;
     public string[] tagsAbilita;
 
+    // Calcola il danno in base a dannoBase + scalings, applica il modificatore della stance e infligge i danni al bersaglio
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
         int dannoTotale = dannoBase;
@@ -40,6 +41,7 @@ public class EffettoDanno : EffettoAbilita
         }
     }
 
+    // Restituisce il valore numerico della statistica richiesta dall'unità
     int GetStatistica(CombatUnit unita, StatisticaScaling scaling)
     {
         switch (scaling)

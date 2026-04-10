@@ -13,17 +13,20 @@ public class ContestoCombattimento
     // Buff attivi con durata — chiave: (unita, nomeBuff), valore: azioniRimanenti
     private Dictionary<(CombatUnit, string), int> buffAttivi = new Dictionary<(CombatUnit, string), int>();
 
+    // Controlla se l'unità ha un buff attivo con il nome specificato
     public bool HaBuff(CombatUnit unita, string nomeBuff)
     {
         return buffAttivi.ContainsKey((unita, nomeBuff));
     }
 
 
+    // Rimuove immediatamente il buff indicato dall'unità
     public void RimuoviBuff(CombatUnit unita, string nomeBuff)
     {
         buffAttivi.Remove((unita, nomeBuff));
     }
 
+    // Aggiunge un buff con durata in azioni — se stack=false fa refresh, se stack=true accumula istanze
     public void AggiungiBuff(CombatUnit unita, string nomeBuff, int durataAzioni = -1, bool stack = false)
     {
         var chiave = (unita, nomeBuff);
@@ -43,6 +46,7 @@ public class ContestoCombattimento
             (durataAzioni > 0 ? " (durata " + durataAzioni + " azioni)" : " (permanente)"));
     }
 
+    // Decrementa la durata dei buff dell'unità dopo ogni azione e rimuove quelli scaduti; salta i buff appena aggiunti
     public void DecrementaBuffDopoAzione(CombatUnit unita)
     {
         List<(CombatUnit, string)> daRimuovere = new List<(CombatUnit, string)>();
@@ -75,6 +79,7 @@ public class ContestoCombattimento
         buffAggiuntiQuestoTurno.RemoveWhere(k => k.Item1 == unita);
     }
 
+    // Restituisce il moltiplicatore danno dalla stance attiva, filtrato per i tag dell'abilità
     public float GetModificatoreDanno(string[] tagsAbilita)
     {
         if (stanceAttiva == null || stanceAttiva.effetti == null) return 1f;
@@ -92,6 +97,7 @@ public class ContestoCombattimento
         return 1f;
     }
 
+    // Restituisce il valore di difesa calcolato dalla stance attiva per il difensore
     public int GetModificatoreDifesa(CombatUnit difensore)
     {
         if (stanceAttiva == null || stanceAttiva.effetti == null) return 0;
@@ -106,16 +112,19 @@ public class ContestoCombattimento
     // Tag aggiunti dinamicamente dalla stance all'azione corrente
     private HashSet<string> tagsDinamici = new HashSet<string>();
 
+    // Aggiunge un tag dinamico al set corrente — valido solo per l'azione in corso
     public void AggiungiTagDinamico(string tag)
     {
         tagsDinamici.Add(tag.Trim().ToLower());
     }
 
+    // Pulisce i tag dinamici prima di ogni nuova azione
     public void ResetTagDinamici()
     {
         tagsDinamici.Clear();
     }
 
+    // Unisce i tag fissi dell'abilità con i tag dinamici aggiunti dalla stance, restituisce l'insieme completo
     public string[] GetTagsEffettivi(string[] tagsAbilita)
     {
         // Unisce i tag fissi dell'abilità con quelli dinamici della stance

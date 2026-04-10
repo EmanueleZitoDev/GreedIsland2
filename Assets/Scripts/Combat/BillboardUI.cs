@@ -4,11 +4,13 @@ public class BillboardUI : MonoBehaviour
 {
     private Camera cam;
 
+    // Recupera il riferimento alla camera principale
     void Start()
     {
         cam = Camera.main;
     }
 
+    // Ruota il canvas verso la camera ogni frame per tenerlo sempre leggibile
     void LateUpdate()
     {
         if (cam == null) return;

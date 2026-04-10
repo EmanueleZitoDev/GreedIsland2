@@ -8,6 +8,7 @@ public class GameOverUI : MonoBehaviour
     [Header("Pannello Game Over")]
     public GameObject pannelloGameOver;
 
+    // Inizializza il singleton e nasconde il pannello game over
     void Awake()
     {
         if (Instance == null)
@@ -18,6 +19,7 @@ public class GameOverUI : MonoBehaviour
         pannelloGameOver.SetActive(false);
     }
 
+    // Mostra il pannello game over, sblocca il cursore e ferma il tempo
     public void Mostra()
     {
         pannelloGameOver.SetActive(true);
@@ -28,6 +30,7 @@ public class GameOverUI : MonoBehaviour
         GameState.inputBloccato = true;
     }
 
+    // Riavvia la scena corrente ripristinando il tempo e lo stato dell'input
     public void RicaricaScena()
     {
         Time.timeScale = 1f;

@@ -51,6 +51,7 @@ public class CombatManager : MonoBehaviour
     public AbilitaDato stanceTen;
     public AbilitaDato stanceRen;
 
+    // Inizializza il singleton — distrugge i duplicati
     void Awake()
     {
         if (Instance == null)
@@ -59,6 +60,7 @@ public class CombatManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    // Avvia un nuovo combattimento tra giocatore e mostro, resetta lo stato e parte il loop dei turni
     public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2, InteractableObject oggetto)
     {
         contesto = new ContestoCombattimento();
@@ -82,6 +84,7 @@ public class CombatManager : MonoBehaviour
         //GameOverUI.Instance.Nascondi();
     }
 
+    // Loop principale dei turni: raccoglie le azioni del giocatore, genera quelle del mostro e le esegue in ordine di destrezza
     IEnumerator GestisciTurno()
     {
         while (combattimentoAttivo)
@@ -146,6 +149,7 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    // Esegue una singola azione: imposta la stance, applica i tag dinamici, esegue l'abilità e decrementa i buff
     IEnumerator EseguiAzione(AzioneCombattimento azione)
     {
         if (azione == null) yield break;
@@ -181,6 +185,7 @@ public class CombatManager : MonoBehaviour
         yield return null;
     }
 
+    // Consuma il Nen richiesto e applica tutti gli effetti dell'abilità se le condizioni sono soddisfatte
     void EseguiAbilita(AzioneCombattimento azione)
     {
         if (azione.abilita == null) return;
@@ -203,12 +208,14 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    // Riempie le azioni del mostro con attacchi fisici base in Ten (AI semplice)
     void ScegliAzioniMostro()
     {
         for (int i = 0; i < mostro.azioniPerTurno; i++)
             azioniMostro[i] = new AzioneCombattimento(mostro, giocatore, TipoAzione.UsaAbilita, StanceTipo.Ten, attaccoFisicoBase);
     }
 
+    // Controlla se uno dei due combattenti è morto e termina il combattimento di conseguenza
     bool VerificaFine()
     {
         if (mostro.IsMorto())
@@ -224,6 +231,7 @@ public class CombatManager : MonoBehaviour
         return false;
     }
 
+    // Chiude il combattimento: in caso di vittoria distrugge il mostro, in caso di sconfitta mostra il game over
     void TerminaCombattimento(bool giocatoreHaVinto)
     {
         combattimentoAttivo = false;
@@ -244,17 +252,20 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    // Registra un'abilità del giocatore nello slot indicato con la stance selezionata
     public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
         azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, TipoAzione.UsaAbilita, stance, abilita);
     }
 
+    // Svuota lo slot all'indice indicato rimuovendo l'azione assegnata
     public void RimuoviAzioneAIndice(int index)
     {
         azioniGiocatore[index] = null;
     }
 
+    // Conferma la coda azioni del giocatore se tutti gli slot sono pieni — sblocca l'esecuzione del turno
     public void ConfermaAzioni()
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
@@ -268,8 +279,11 @@ public class CombatManager : MonoBehaviour
         inFaseSelezione = false;
     }
 
+    // Restituisce true se il combattimento è in corso
     public bool IsCombattimentoAttivo() { return combattimentoAttivo; }
+    // Restituisce true se il giocatore sta ancora selezionando le azioni
     public bool IsInFaseSelezione() { return inFaseSelezione; }
+    // Restituisce l'AbilitaDato della stance attiva (Ten o Ren)
     AbilitaDato GetStanceAbilita(StanceTipo stance)
     {
         switch (stance)

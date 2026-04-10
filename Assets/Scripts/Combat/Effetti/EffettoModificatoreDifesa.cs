@@ -10,6 +10,7 @@ public class EffettoModificatoreDifesa : EffettoAbilita
         // Viene letto da CombatUnit.CalcolaDifesa tramite contesto
     }
 
+    // Calcola la difesa del difensore come percentuale del suo Nen attuale
     public int CalcolaDifesa(CombatUnit difensore)
     {
         return Mathf.FloorToInt(difensore.GetNen() * percentualeNen);

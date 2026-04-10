@@ -23,6 +23,7 @@ public class CameraFollow : MonoBehaviour
     private Transform targetInterazione;
     private Vector3 offsetInterazione;
 
+    // Aggiorna la posizione e rotazione della camera ogni frame — segue il giocatore o si posiziona in modalità combattimento
     void LateUpdate()
     {
         if (GameState.inputBloccato) return;
@@ -87,6 +88,7 @@ public class CameraFollow : MonoBehaviour
         transform.LookAt(target.position + Vector3.up);
     }
 
+    // Attiva la modalità combattimento puntando la camera verso l'oggetto nemico
     public void ImpostaTargetInterazione(Transform oggetto, Vector3 offset)
     {
         inModalitaInterazione = true;
@@ -94,6 +96,7 @@ public class CameraFollow : MonoBehaviour
         offsetInterazione = offset;
     }
 
+    // Disattiva la modalità combattimento e ripristina il follow libero
     public void RipristinaCamera()
     {
         inModalitaInterazione = false;

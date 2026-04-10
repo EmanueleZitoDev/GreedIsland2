@@ -18,6 +18,7 @@ public class InteractableObject : MonoBehaviour
     private bool inInterazione = false;
     private bool inMovimentoVersoMostro = false;
 
+    // Recupera i riferimenti al giocatore, alla camera e al controller
     void Start()
     {
         giocatore = GameObject.FindWithTag("Player").transform;
@@ -29,6 +30,7 @@ public class InteractableObject : MonoBehaviour
             controllerGiocatore = giocatore.GetComponent<ThirdPersonController>();
     }
 
+    // Rileva la pressione di E quando il giocatore è nel raggio e avvia o termina l'interazione
     void Update()
     {
         if (GameState.inputBloccato) return;
@@ -45,6 +47,7 @@ public class InteractableObject : MonoBehaviour
         }
     }
 
+    // Muove il giocatore verso il mostro via NavMesh, poi avvia il combattimento e cambia la camera
     System.Collections.IEnumerator IniziaInterazione()
     {
         inMovimentoVersoMostro = true;
@@ -108,6 +111,7 @@ public class InteractableObject : MonoBehaviour
             Debug.LogWarning("CombatUnit mancante su giocatore o mostro.");
     }
 
+    // Ripristina la camera, riabilita il controller e nasconde le UI di combattimento
     void TerminaInterazione()
     {
         inInterazione = false;
@@ -125,12 +129,14 @@ public class InteractableObject : MonoBehaviour
         //Debug.Log("Combattimento terminato");
     }
 
+    // Chiamato dal CombatManager alla vittoria per forzare la chiusura del combattimento
     public void ForzaUscitaCombattimento()
     {
         if (!inInterazione) return;
         TerminaInterazione();
     }
 
+    // Disegna i raggi di interazione e combattimento nell'editor per facilitare il debug
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

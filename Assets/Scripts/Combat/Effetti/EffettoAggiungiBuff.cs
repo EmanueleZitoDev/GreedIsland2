@@ -7,6 +7,7 @@ public class EffettoAggiungiBuff : EffettoAbilita
     public int durataAzioni = 2;
     public enum ComportamentoBuff { Refresh, Stack }
     public ComportamentoBuff comportamento = ComportamentoBuff.Refresh;
+    // Aggiunge il buff all'esecutore con la durata specificata — esegue refresh o stack in base alla configurazione
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
         bool stack = comportamento == ComportamentoBuff.Stack;

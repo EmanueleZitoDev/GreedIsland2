@@ -12,6 +12,7 @@ public class EffettoModificatoreDanno : EffettoAbilita
         // Viene letto da EffettoDanno tramite contesto
     }
 
+    // Restituisce true se almeno uno dei tag richiesti è presente nei tag effettivi dell'abilità (o se non ci sono tag richiesti)
     public bool ApplicaA(string[] tagsEffettivi)
     {
         if (tagRichiesti == null || tagRichiesti.Length == 0) return true;

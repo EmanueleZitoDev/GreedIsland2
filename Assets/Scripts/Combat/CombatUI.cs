@@ -58,6 +58,7 @@ public class CombatUI : MonoBehaviour
     // Stance attualmente selezionata — default Ten
     private StanceTipo stanceCorrente = StanceTipo.Ten;
 
+    // Inizializza il singleton e nasconde il pannello all'avvio
     void Awake()
     {
         if (Instance == null)
@@ -68,6 +69,7 @@ public class CombatUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    // Collega i listener ai pulsanti preferiti, stance, conferma, indietro, azioni e carte
     void Start()
     {
         // Collega i preferiti
@@ -97,6 +99,7 @@ public class CombatUI : MonoBehaviour
         AggiornaPulsantiStance();
     }
 
+    // Mostra il pannello di combattimento, genera gli slot azione e sblocca il cursore
     public void MostraCombatUI()
     {
         gameObject.SetActive(true);
@@ -112,6 +115,7 @@ public class CombatUI : MonoBehaviour
         Cursor.visible = true;
     }
 
+    // Nasconde il pannello di combattimento e ripristina il cursore bloccato
     public void NascondiCombatUI()
     {
         gameObject.SetActive(false);
@@ -134,6 +138,7 @@ public class CombatUI : MonoBehaviour
         SetColoreBottone(pulsanteRen, stanceCorrente == StanceTipo.Ren ? coloreStanceAttiva : coloreStanceInattiva);
     }
 
+    // Imposta il colore normale e selezionato di un pulsante
     void SetColoreBottone(Button btn, Color colore)
     {
         ColorBlock cb = btn.colors;
@@ -174,6 +179,7 @@ public class CombatUI : MonoBehaviour
         AggiornaUI();
     }
 
+    // Mostra il pannello lista abilità, popola i pulsanti con l'attacco fisico base e le abilità sbloccate
     public void ApriListaAzioni()
     {
         pannelloPreferiti.SetActive(false);
@@ -223,6 +229,7 @@ public class CombatUI : MonoBehaviour
         }
     }
 
+    // Inserisce l'abilità selezionata nel primo slot libero con la stance corrente
     public void SelezionaAbilita(AbilitaDato abilita)
     {
         if (!CombatManager.Instance.IsInFaseSelezione()) return;
@@ -242,6 +249,7 @@ public class CombatUI : MonoBehaviour
         }
     }
 
+    // Ripristina la vista predefinita con preferiti e pulsanti Azioni/Carte
     public void TornaAlDefault()
     {
         pannelloPreferiti.SetActive(true);
@@ -251,6 +259,7 @@ public class CombatUI : MonoBehaviour
         pulsanteIndietro.SetActive(false);
     }
 
+    // Placeholder per la lista carte — da implementare in Phase 3
     public void ApriListaCarte()
     {
         Debug.Log("Lista carte — da implementare");
@@ -296,6 +305,7 @@ public class CombatUI : MonoBehaviour
         pulsanteConferma.SetActive(azioniSelezionate >= slotsAttivi.Count);
     }
 
+    // Svuota tutti gli slot e aggiorna la UI
     void ResetSlots()
     {
         if (slotOccupato == null) return;
@@ -304,6 +314,7 @@ public class CombatUI : MonoBehaviour
         AggiornaUI();
     }
 
+    // Genera dinamicamente gli slot azione in base al numero di azioni per turno del giocatore
     void GeneraSlots(int numAzioni)
     {
         abilitaInSlot = new AbilitaDato[numAzioni];

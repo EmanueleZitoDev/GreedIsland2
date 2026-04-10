@@ -20,6 +20,7 @@ public class CombatUnit : MonoBehaviour
     public int influenza = 10;
     public GameObject canvasUI;
 
+    // Restituisce il valore di destrezza — usato per determinare l'ordine di iniziativa
     public int GetDestrezza() { return destrezza; }
 
     [Header("HP")]
@@ -47,6 +48,7 @@ public class CombatUnit : MonoBehaviour
     [HideInInspector]
     public StanceTipo stanceCorrente = StanceTipo.Ten;
 
+    // Nasconde il canvas UI e calcola HP e Nen massimi in base alle statistiche
     void Awake()
     {
         if (canvasUI != null)
@@ -63,12 +65,14 @@ public class CombatUnit : MonoBehaviour
         AggiornaBarre();
     }
 
+    // Rende visibile il canvas UI con le barre HP e Nen
     public void MostraUI()
     {
         if (canvasUI != null)
             canvasUI.SetActive(true);
     }
 
+    // Nasconde il canvas UI con le barre HP e Nen
     public void NascondiUI()
     {
         if (canvasUI != null)
@@ -134,6 +138,7 @@ public class CombatUnit : MonoBehaviour
         AggiornaBarre();
         //Debug.Log(nomePersonaggio + " rigenera " + regen + " Nen.");
     }
+    // Recupera HP senza superare il massimo e aggiorna le barre
     public void RiceviCura(int quantita)
     {
         hpAttuali = Mathf.Min(hpMax, hpAttuali + quantita);
