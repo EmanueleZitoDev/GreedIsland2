@@ -23,6 +23,8 @@ MonoBehaviour:
   isPassiva: 0
   costoNen: 0
   priorita: 0
-  tags: []
+  tags:
+  - '[mani nude]'
+  - '[corpo a corpo]'
   effetti:
   - {fileID: 11400000, guid: cd7411efc7ab4574e8bc715bc8844297, type: 2}

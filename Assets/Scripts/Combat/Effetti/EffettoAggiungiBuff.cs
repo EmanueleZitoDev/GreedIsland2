@@ -1,17 +1,17 @@
 using UnityEngine;
 
+// Applica un BuffDato al personaggio esecutore con comportamento Refresh o Stack
 [CreateAssetMenu(fileName = "EffettoAggiungiBuff", menuName = "GreedIsland/Effetti/AggiungiBuff")]
 public class EffettoAggiungiBuff : EffettoAbilita
 {
-    public string nomeBuff;
-    public int durataAzioni = 2;
+    public BuffDato buff;
     public enum ComportamentoBuff { Refresh, Stack }
     public ComportamentoBuff comportamento = ComportamentoBuff.Refresh;
-    // Aggiunge il buff all'esecutore con la durata specificata — esegue refresh o stack in base alla configurazione
+
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
+        if (buff == null) return;
         bool stack = comportamento == ComportamentoBuff.Stack;
-        contesto.AggiungiBuff(esecutore, nomeBuff, durataAzioni, stack);
-        //Debug.Log(esecutore.nomePersonaggio + " ottiene buff: " + nomeBuff + " (durata " + durataAzioni + " azioni)");
+        contesto.AggiungiBuff(esecutore, buff, stack);
     }
 }

@@ -29,4 +29,5 @@ MonoBehaviour:
   - '[nen dipendente]'
   - '[passiva]'
   - '[mani nude]'
-  effetto: Corpo a corpo (Mani nude) + 0,5 FOR
+  effetti:
+  - {fileID: 11400000, guid: 3dd2cc7ff9e9eb44e83ccc9c91408578, type: 2}

@@ -7,46 +7,60 @@ public class ContestoCombattimento
     public CombatUnit bersaglioAzioneCorrente;
     public TipoAzione tipoAzioneCorrente;
     public bool esecutoreEBersaglio;
-    private HashSet<(CombatUnit, string)> buffAggiuntiQuestoTurno = new HashSet<(CombatUnit, string)>();
+    public AbilitaDato abilitaCorrente;
     public AbilitaDato stanceAttiva;
 
-    // Buff attivi con durata — chiave: (unita, nomeBuff), valore: azioniRimanenti
-    private Dictionary<(CombatUnit, string), int> buffAttivi = new Dictionary<(CombatUnit, string), int>();
+    // Buff attivi — chiave: (unita, nomeBuff), valore: BuffDato con durata rimanente
+    private Dictionary<(CombatUnit, string), (BuffDato buff, int durata)> buffAttivi
+        = new Dictionary<(CombatUnit, string), (BuffDato, int)>();
 
-    // Controlla se l'unità ha un buff attivo con il nome specificato
-    public bool HaBuff(CombatUnit unita, string nomeBuff)
+    private HashSet<(CombatUnit, string)> buffAggiuntiQuestoTurno
+        = new HashSet<(CombatUnit, string)>();
+
+    private HashSet<string> tagsDinamici = new HashSet<string>();
+
+    // Aggiunge un buff al personaggio. Se già presente, fa refresh o stack in base al parametro
+    public void AggiungiBuff(CombatUnit unita, BuffDato buff, bool stack = false)
     {
-        return buffAttivi.ContainsKey((unita, nomeBuff));
+        var chiave = (unita, buff.nomeBuff);
+
+        if (!stack && buffAttivi.ContainsKey(chiave))
+        {
+            buffAttivi[chiave] = (buff, buff.durataAzioni);
+            buffAggiuntiQuestoTurno.Add(chiave);
+            Debug.Log(unita.nomePersonaggio + " buff refreshato: " + buff.nomeBuff);
+            return;
+        }
+
+        buffAttivi[chiave] = (buff, buff.durataAzioni);
+        buffAggiuntiQuestoTurno.Add(chiave);
+        Debug.Log(unita.nomePersonaggio + " ottiene buff: " + buff.nomeBuff +
+            (buff.durataAzioni > 0 ? " (durata " + buff.durataAzioni + " azioni)" : " (permanente)"));
     }
 
-
-    // Rimuove immediatamente il buff indicato dall'unità
+    // Rimuove un buff dal personaggio tramite nome
     public void RimuoviBuff(CombatUnit unita, string nomeBuff)
     {
         buffAttivi.Remove((unita, nomeBuff));
     }
 
-    // Aggiunge un buff con durata in azioni — se stack=false fa refresh, se stack=true accumula istanze
-    public void AggiungiBuff(CombatUnit unita, string nomeBuff, int durataAzioni = -1, bool stack = false)
+    // Verifica se il personaggio ha un buff attivo tramite nome
+    public bool HaBuff(CombatUnit unita, string nomeBuff)
     {
-        var chiave = (unita, nomeBuff);
-
-        if (!stack && buffAttivi.ContainsKey(chiave))
-        {
-            // Refresh — resetta la durata
-            buffAttivi[chiave] = durataAzioni;
-            buffAggiuntiQuestoTurno.Add(chiave);
-            Debug.Log(unita.nomePersonaggio + " buff refreshato: " + nomeBuff);
-            return;
-        }
-
-        buffAttivi[chiave] = durataAzioni;
-        buffAggiuntiQuestoTurno.Add(chiave);
-        Debug.Log(unita.nomePersonaggio + " ottiene buff: " + nomeBuff +
-            (durataAzioni > 0 ? " (durata " + durataAzioni + " azioni)" : " (permanente)"));
+        return buffAttivi.ContainsKey((unita, nomeBuff));
     }
 
-    // Decrementa la durata dei buff dell'unità dopo ogni azione e rimuove quelli scaduti; salta i buff appena aggiunti
+    // Ritorna tutti i buff attivi di un personaggio
+    public List<BuffDato> GetBuffAttivi(CombatUnit unita)
+    {
+        List<BuffDato> risultato = new List<BuffDato>();
+        foreach (var kvp in buffAttivi)
+            if (kvp.Key.Item1 == unita)
+                risultato.Add(kvp.Value.buff);
+        return risultato;
+    }
+
+    // Decrementa la durata dei buff dopo ogni azione, rimuove quelli scaduti
     public void DecrementaBuffDopoAzione(CombatUnit unita)
     {
         List<(CombatUnit, string)> daRimuovere = new List<(CombatUnit, string)>();
@@ -55,19 +69,17 @@ public class ContestoCombattimento
         foreach (var kvp in buffAttivi)
         {
             if (kvp.Key.Item1 != unita) continue;
-            if (kvp.Value == -1) continue;
-            // Salta i buff appena aggiunti in questa azione
+            if (kvp.Value.durata == -1) continue;
             if (buffAggiuntiQuestoTurno.Contains(kvp.Key)) continue;
 
-            int nuovaDurata = kvp.Value - 1;
-            if (nuovaDurata <= 0)
+            if (kvp.Value.durata - 1 <= 0)
                 daRimuovere.Add(kvp.Key);
             else
                 daAggiornare.Add(kvp.Key);
         }
 
         foreach (var chiave in daAggiornare)
-            buffAttivi[chiave] = buffAttivi[chiave] - 1;
+            buffAttivi[chiave] = (buffAttivi[chiave].buff, buffAttivi[chiave].durata - 1);
 
         foreach (var chiave in daRimuovere)
         {
@@ -75,59 +87,24 @@ public class ContestoCombattimento
             buffAttivi.Remove(chiave);
         }
 
-        // Pulisci i buff appena aggiunti dopo il decremento
         buffAggiuntiQuestoTurno.RemoveWhere(k => k.Item1 == unita);
     }
 
-    // Restituisce il moltiplicatore danno dalla stance attiva, filtrato per i tag dell'abilità
-    public float GetModificatoreDanno(string[] tagsAbilita)
-    {
-        if (stanceAttiva == null || stanceAttiva.effetti == null) return 1f;
-
-        string[] tagsEffettivi = GetTagsEffettivi(tagsAbilita);
-
-        foreach (var effetto in stanceAttiva.effetti)
-        {
-            if (effetto is EffettoModificatoreDanno mod)
-            {
-                if (mod.ApplicaA(tagsEffettivi))
-                    return mod.moltiplicatore;
-            }
-        }
-        return 1f;
-    }
-
-    // Restituisce il valore di difesa calcolato dalla stance attiva per il difensore
-    public int GetModificatoreDifesa(CombatUnit difensore)
-    {
-        if (stanceAttiva == null || stanceAttiva.effetti == null) return 0;
-        foreach (var effetto in stanceAttiva.effetti)
-        {
-            if (effetto is EffettoModificatoreDifesa mod)
-                return mod.CalcolaDifesa(difensore);
-        }
-        return 0;
-    }
-
-    // Tag aggiunti dinamicamente dalla stance all'azione corrente
-    private HashSet<string> tagsDinamici = new HashSet<string>();
-
-    // Aggiunge un tag dinamico al set corrente — valido solo per l'azione in corso
+    // Aggiunge un tag dinamico per l'azione corrente (usato dalle stance)
     public void AggiungiTagDinamico(string tag)
     {
         tagsDinamici.Add(tag.Trim().ToLower());
     }
 
-    // Pulisce i tag dinamici prima di ogni nuova azione
+    // Resetta i tag dinamici prima di ogni azione
     public void ResetTagDinamici()
     {
         tagsDinamici.Clear();
     }
 
-    // Unisce i tag fissi dell'abilità con i tag dinamici aggiunti dalla stance, restituisce l'insieme completo
+    // Ritorna i tag effettivi dell'abilità corrente uniti ai tag dinamici della stance
     public string[] GetTagsEffettivi(string[] tagsAbilita)
     {
-        // Unisce i tag fissi dell'abilità con quelli dinamici della stance
         HashSet<string> tutti = new HashSet<string>();
         if (tagsAbilita != null)
             foreach (var t in tagsAbilita)
@@ -138,5 +115,31 @@ public class ContestoCombattimento
         string[] result = new string[tutti.Count];
         tutti.CopyTo(result);
         return result;
+    }
+
+    // Ritorna il moltiplicatore danno dalla stance per i tag forniti
+    public float GetModificatoreDanno(string[] tagsAbilita)
+    {
+        if (stanceAttiva == null || stanceAttiva.effetti == null) return 1f;
+
+        string[] tagsEffettivi = GetTagsEffettivi(tagsAbilita);
+
+        foreach (var effetto in stanceAttiva.effetti)
+        {
+            if (effetto is EffettoModificatoreDanno mod)
+                if (mod.ApplicaA(tagsEffettivi))
+                    return mod.moltiplicatore;
+        }
+        return 1f;
+    }
+
+    // Ritorna la difesa calcolata dalla stance attiva sul Nen residuo del difensore
+    public int GetModificatoreDifesa(CombatUnit difensore)
+    {
+        if (stanceAttiva == null || stanceAttiva.effetti == null) return 0;
+        foreach (var effetto in stanceAttiva.effetti)
+            if (effetto is EffettoModificatoreDifesa mod)
+                return mod.CalcolaDifesa(difensore);
+        return 0;
     }
 }

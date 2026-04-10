@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8115736d92f6fb44a91174c186136b7d, type: 3}
+  m_Name: BuffDato_InfusioneNenCorpo
+  m_EditorClassIdentifier: Assembly-CSharp::BuffDato
+  nomeBuff: Infusione Nen (Corpo)
+  durataAzioni: -1
+  condizioniAttivazione:
+  - {fileID: 11400000, guid: f810153cd0466644e82d22751c20edd8, type: 2}
+  effetti:
+  - {fileID: 11400000, guid: f1333cd4a7ab0454281f9808d669f341, type: 2}
+  tags: []

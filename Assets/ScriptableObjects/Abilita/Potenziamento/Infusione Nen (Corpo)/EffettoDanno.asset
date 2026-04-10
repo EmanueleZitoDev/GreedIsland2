@@ -16,7 +16,5 @@ MonoBehaviour:
   dannoBase: 0
   scalings:
   - statistica: 0
-    moltiplicatore: 1
-  - statistica: 5
-    moltiplicatore: 1
+    moltiplicatore: 0.5
   tagsAbilita: []

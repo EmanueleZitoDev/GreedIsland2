@@ -28,7 +28,7 @@ public class EffettoDanno : EffettoAbilita
         dannoTotale = Mathf.FloorToInt(dannoTotale * modDanno);
 
         int dannoEffettivo = bersaglio.SubisciDanno(dannoTotale);
-        Debug.Log(esecutore.nomePersonaggio + " infligge " + dannoEffettivo + " danni a " + bersaglio.nomePersonaggio);
+        Debug.Log(esecutore.nomePersonaggio + " infligge " + dannoEffettivo + " danni a " + bersaglio.nomePersonaggio +" tramite " + (contesto.abilitaCorrente != null ? contesto.abilitaCorrente.name : "abilità sconosciuta"));
 
         // Rimuovi buff richiesti dalle condizioni
         foreach (var condizione in condizioni)

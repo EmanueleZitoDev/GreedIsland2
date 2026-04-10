@@ -25,5 +25,6 @@ MonoBehaviour:
   priorita: 0
   tags: []
   effetti:
-  - {fileID: 11400000, guid: fb2fcf5b7e2df804bbcf91bf27460c09, type: 2}
   - {fileID: 11400000, guid: 9c7e2d14f8f60a14d9fdd23c90cfb92f, type: 2}
+  - {fileID: 11400000, guid: fb2fcf5b7e2df804bbcf91bf27460c09, type: 2}
+  - {fileID: 11400000, guid: ada68a99f4746e94bb476f7a6787cd56, type: 2}

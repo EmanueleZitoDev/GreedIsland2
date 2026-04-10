@@ -60,10 +60,8 @@ public class CombatManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    // Avvia un nuovo combattimento tra giocatore e mostro, resetta lo stato e parte il loop dei turni
     public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2, InteractableObject oggetto)
     {
-        Debug.Log("IniziaCombattimento chiamato — stack: " + System.Environment.StackTrace);
         contesto = new ContestoCombattimento();
         giocatore = unita1;
         mostro = unita2;
@@ -77,12 +75,32 @@ public class CombatManager : MonoBehaviour
         giocatore.stanceCorrente = StanceTipo.Ten;
         mostro.stanceCorrente = StanceTipo.Ten;
 
+        // Applica i buff permanenti delle abilità passive sbloccate
+        ApplicaPassive(giocatore);
+        ApplicaPassive(mostro);
+
         Debug.Log("=== COMBATTIMENTO INIZIATO ===");
         StartCoroutine(GestisciTurno());
         giocatore.MostraUI();
         mostro.MostraUI();
         CombatUI.Instance.MostraCombatUI();
-        //GameOverUI.Instance.Nascondi();
+    }
+
+    // Scorre le abilità passive sbloccate del personaggio e applica i loro buff permanenti al contesto
+    void ApplicaPassive(CombatUnit unita)
+    {
+        SkillTreePersonaggio skillTree = unita.GetComponent<SkillTreePersonaggio>();
+        if (skillTree == null) return;
+
+        foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)
+        {
+            if (abilita == null || !abilita.isPassiva) continue;
+            foreach (var effetto in abilita.effetti)
+            {
+                if (effetto == null) continue;
+                effetto.Esegui(unita, null, contesto);
+            }
+        }
     }
 
     // Loop principale dei turni: raccoglie le azioni del giocatore, genera quelle del mostro e le esegue in ordine di destrezza
@@ -187,11 +205,15 @@ public class CombatManager : MonoBehaviour
         yield return null;
     }
 
-    // Consuma il Nen richiesto e applica tutti gli effetti dell'abilità se le condizioni sono soddisfatte
+    // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità
     void EseguiAbilita(AzioneCombattimento azione)
     {
         if (azione.abilita == null) return;
 
+        // Aggiorna abilità corrente nel contesto
+        contesto.abilitaCorrente = azione.abilita;
+
+        // Consuma il Nen
         if (azione.abilita.costoNen > 0)
         {
             bool ok = azione.esecutore.ConsumaNen(azione.abilita.costoNen);
@@ -202,6 +224,28 @@ public class CombatManager : MonoBehaviour
             }
         }
 
+        // Esegui gli effetti dei buff attivi con condizioni soddisfatte
+        foreach (BuffDato buff in contesto.GetBuffAttivi(azione.esecutore))
+        {
+            if (buff == null || buff.effetti == null) continue;
+            bool condizioniSoddisfatte = true;
+            foreach (var condizione in buff.condizioniAttivazione)
+            {
+                if (!condizione.Valuta(azione.esecutore, azione.bersaglio, contesto))
+                {
+                    condizioniSoddisfatte = false;
+                    break;
+                }
+            }
+            if (!condizioniSoddisfatte) continue;
+            foreach (var effetto in buff.effetti)
+            {
+                if (effetto == null) continue;
+                effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
+            }
+        }
+
+        // Esegui gli effetti dell'abilità attiva
         foreach (var effetto in azione.abilita.effetti)
         {
             if (effetto == null) continue;
