@@ -184,6 +184,15 @@ public class CombatUnit : MonoBehaviour
             testoNen.text = nenAttuali + "/" + nenMax;
     }
 
+    // Ripristina HP, Nen e stance ai valori iniziali. Usato quando il giocatore fugge dal combattimento.
+    public void ResetCombattimento()
+    {
+        hpAttuali = hpMax;
+        nenAttuali = nenMax;
+        stanceCorrente = StanceTipo.Ten;
+        AggiornaBarre();
+    }
+
     // Getter pubblici
     public int GetHP() { return hpAttuali; }
     public int GetHPMax() { return hpMax; }

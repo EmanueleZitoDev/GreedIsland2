@@ -63,6 +63,7 @@ public class CombatManager : MonoBehaviour
     // Avvia un nuovo combattimento tra giocatore e mostro, resetta lo stato e parte il loop dei turni
     public void IniziaCombattimento(CombatUnit unita1, CombatUnit unita2, InteractableObject oggetto)
     {
+        Debug.Log("IniziaCombattimento chiamato — stack: " + System.Environment.StackTrace);
         contesto = new ContestoCombattimento();
         giocatore = unita1;
         mostro = unita2;
@@ -87,6 +88,7 @@ public class CombatManager : MonoBehaviour
     // Loop principale dei turni: raccoglie le azioni del giocatore, genera quelle del mostro e le esegue in ordine di destrezza
     IEnumerator GestisciTurno()
     {
+        Debug.Log("GestisciTurno avviato");
         while (combattimentoAttivo)
         {
             Debug.Log("--- Turno " + turnoCorrente + " ---");
@@ -277,6 +279,14 @@ public class CombatManager : MonoBehaviour
 
         azioniConfermate = true;
         inFaseSelezione = false;
+    }
+
+    // Azzera il ContestoCombattimento, rimuovendo tutti i buff e i tag dinamici attivi e ferma tutte le coroutine attive.
+    public void ResetContesto()
+    {
+        StopAllCoroutines();
+        combattimentoAttivo = false;
+        contesto = new ContestoCombattimento();
     }
 
     // Restituisce true se il combattimento è in corso

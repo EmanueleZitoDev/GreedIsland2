@@ -111,7 +111,8 @@ public class InteractableObject : MonoBehaviour
             Debug.LogWarning("CombatUnit mancante su giocatore o mostro.");
     }
 
-    // Ripristina la camera, riabilita il controller e nasconde le UI di combattimento
+    // Termina il combattimento, ripristina camera, movimento e UI.
+    // Resetta HP/Nen/stance del mostro. Gli HP del giocatore restano invariati.
     void TerminaInterazione()
     {
         inInterazione = false;
@@ -126,7 +127,14 @@ public class InteractableObject : MonoBehaviour
         if (unitaGiocatore != null) unitaGiocatore.NascondiUI();
         if (unitaMostro != null) unitaMostro.NascondiUI();
         CombatUI.Instance.NascondiCombatUI();
-        //Debug.Log("Combattimento terminato");
+
+        // Reset combattimento
+        if (unitaMostro != null) unitaMostro.ResetCombattimento();
+        if (unitaGiocatore != null) unitaGiocatore.stanceCorrente = StanceTipo.Ten;
+        if (unitaMostro != null) unitaMostro.stanceCorrente = StanceTipo.Ten;
+        CombatManager.Instance.ResetContesto();
+
+        Debug.Log("Combattimento terminato");
     }
 
     // Chiamato dal CombatManager alla vittoria per forzare la chiusura del combattimento
