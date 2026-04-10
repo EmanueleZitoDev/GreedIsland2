@@ -47,6 +47,10 @@ public class CombatManager : MonoBehaviour
 
     private ContestoCombattimento contesto = new ContestoCombattimento();
 
+    [Header("Stance")]
+    public AbilitaDato stanceTen;
+    public AbilitaDato stanceRen;
+
     void Awake()
     {
         if (Instance == null)
@@ -158,6 +162,18 @@ public class CombatManager : MonoBehaviour
         contesto.esecutoreAzioneCorrente = azione.esecutore;
         contesto.bersaglioAzioneCorrente = azione.bersaglio;
         contesto.tipoAzioneCorrente = azione.tipo;
+        contesto.stanceAttiva = GetStanceAbilita(azione.esecutore.stanceCorrente);
+
+        // Reset tag dinamici e applica quelli della stance
+        contesto.ResetTagDinamici();
+        if (contesto.stanceAttiva?.effetti != null)
+        {
+            foreach (var effetto in contesto.stanceAttiva.effetti)
+            {
+                if (effetto is EffettoAggiungTag tagEffect)
+                    tagEffect.Esegui(azione.esecutore, azione.bersaglio, contesto);
+            }
+        }
 
         EseguiAbilita(azione);
 
@@ -254,4 +270,14 @@ public class CombatManager : MonoBehaviour
 
     public bool IsCombattimentoAttivo() { return combattimentoAttivo; }
     public bool IsInFaseSelezione() { return inFaseSelezione; }
+    AbilitaDato GetStanceAbilita(StanceTipo stance)
+    {
+        switch (stance)
+        {
+            case StanceTipo.Ten: return stanceTen;
+            case StanceTipo.Ren: return stanceRen;
+            default: return stanceTen;
+        }
+    }
+
 }

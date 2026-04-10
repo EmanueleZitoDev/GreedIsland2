@@ -15,8 +15,9 @@ public class CombatUnit : MonoBehaviour
     public int livello = 1;
     public int forza = 10;
     public int destrezza = 10;
-    public int costituzione = 10;
-    public int intelligenza = 10;
+    public int resistenza = 10;
+    public int aura = 10;
+    public int influenza = 10;
     public GameObject canvasUI;
 
     public int GetDestrezza() { return destrezza; }
@@ -52,11 +53,11 @@ public class CombatUnit : MonoBehaviour
             canvasUI.SetActive(false);
 
         // Calcola HP massimi — formula dal GDD: Base(Hatsu) + COS × LV
-        hpMax = hpBase + (costituzione * livello);
+        hpMax = hpBase + (resistenza * livello);
         hpAttuali = hpMax;
 
         // Calcola Nen massimi — formula dal GDD: Base(Hatsu) + floor(1/6 × INT × LV)
-        nenMax = nenBase + Mathf.FloorToInt(1f / 6f * intelligenza * livello);
+        nenMax = nenBase + Mathf.FloorToInt(1f / 6f * aura * livello);
         nenAttuali = nenMax;
 
         AggiornaBarre();
@@ -75,15 +76,17 @@ public class CombatUnit : MonoBehaviour
     }
 
     // Subisce danni — la difesa viene calcolata dalla stance corrente del difensore
-    public void SubisciDanno(int danno)
+    public int SubisciDanno(int danno, ContestoCombattimento contesto = null)
     {
         int difesa = CalcolaDifesa();
-        int dannoEffettivo = Mathf.Max(0, danno - difesa);
+        if (contesto != null)
+            difesa = contesto.GetModificatoreDifesa(this);
 
+        int dannoEffettivo = Mathf.Max(0, danno - difesa);
         hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);
         AggiornaBarre();
-
-        //Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + " da " + stanceCorrente + "). HP: " + hpAttuali + "/" + hpMax);
+        return dannoEffettivo;
+        //Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + "). HP: " + hpAttuali + "/" + hpMax);
     }
 
     // Calcola la difesa in base alla stance corrente
@@ -126,7 +129,7 @@ public class CombatUnit : MonoBehaviour
     // Rigenera Nen a fine turno — formula dal GDD: floor(10% × LV + 10% × INT)
     public void RigeneraNen()
     {
-        int regen = Mathf.FloorToInt(0.1f * livello + 0.1f * intelligenza);
+        int regen = Mathf.FloorToInt(0.1f * livello + 0.1f * aura);
         nenAttuali = Mathf.Min(nenMax, nenAttuali + regen);
         AggiornaBarre();
         //Debug.Log(nomePersonaggio + " rigenera " + regen + " Nen.");

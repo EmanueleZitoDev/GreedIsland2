@@ -8,6 +8,7 @@ public class ContestoCombattimento
     public TipoAzione tipoAzioneCorrente;
     public bool esecutoreEBersaglio;
     private HashSet<(CombatUnit, string)> buffAggiuntiQuestoTurno = new HashSet<(CombatUnit, string)>();
+    public AbilitaDato stanceAttiva;
 
     // Buff attivi con durata — chiave: (unita, nomeBuff), valore: azioniRimanenti
     private Dictionary<(CombatUnit, string), int> buffAttivi = new Dictionary<(CombatUnit, string), int>();
@@ -72,5 +73,61 @@ public class ContestoCombattimento
 
         // Pulisci i buff appena aggiunti dopo il decremento
         buffAggiuntiQuestoTurno.RemoveWhere(k => k.Item1 == unita);
+    }
+
+    public float GetModificatoreDanno(string[] tagsAbilita)
+    {
+        if (stanceAttiva == null || stanceAttiva.effetti == null) return 1f;
+
+        string[] tagsEffettivi = GetTagsEffettivi(tagsAbilita);
+
+        foreach (var effetto in stanceAttiva.effetti)
+        {
+            if (effetto is EffettoModificatoreDanno mod)
+            {
+                if (mod.ApplicaA(tagsEffettivi))
+                    return mod.moltiplicatore;
+            }
+        }
+        return 1f;
+    }
+
+    public int GetModificatoreDifesa(CombatUnit difensore)
+    {
+        if (stanceAttiva == null || stanceAttiva.effetti == null) return 0;
+        foreach (var effetto in stanceAttiva.effetti)
+        {
+            if (effetto is EffettoModificatoreDifesa mod)
+                return mod.CalcolaDifesa(difensore);
+        }
+        return 0;
+    }
+
+    // Tag aggiunti dinamicamente dalla stance all'azione corrente
+    private HashSet<string> tagsDinamici = new HashSet<string>();
+
+    public void AggiungiTagDinamico(string tag)
+    {
+        tagsDinamici.Add(tag.Trim().ToLower());
+    }
+
+    public void ResetTagDinamici()
+    {
+        tagsDinamici.Clear();
+    }
+
+    public string[] GetTagsEffettivi(string[] tagsAbilita)
+    {
+        // Unisce i tag fissi dell'abilità con quelli dinamici della stance
+        HashSet<string> tutti = new HashSet<string>();
+        if (tagsAbilita != null)
+            foreach (var t in tagsAbilita)
+                tutti.Add(t.Trim().ToLower());
+        foreach (var t in tagsDinamici)
+            tutti.Add(t);
+
+        string[] result = new string[tutti.Count];
+        tutti.CopyTo(result);
+        return result;
     }
 }

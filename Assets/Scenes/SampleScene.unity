@@ -590,6 +590,8 @@ MonoBehaviour:
   giocatore: {fileID: 0}
   mostro: {fileID: 0}
   attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
+  stanceTen: {fileID: 11400000, guid: 377ca0e91443f1d4ba5c479039f9d5e9, type: 2}
+  stanceRen: {fileID: 11400000, guid: 242349ed00763fd4fb7fe048e89feb33, type: 2}
 --- !u!4 &111283474
 Transform:
   m_ObjectHideFlags: 0
@@ -7060,12 +7062,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e07946be8e9c10b40a1be1a99559955f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatUnit
-  nomePersonaggio: Emilio
-  livello: 1
-  forza: 5
-  destrezza: 8
-  costituzione: 7
-  intelligenza: 8
+  nomePersonaggio: Gon
+  livello: 13
+  forza: 22
+  destrezza: 3
+  resistenza: 8
+  aura: 4
+  influenza: 0
   canvasUI: {fileID: 666221254}
   hpBase: 120
   nenBase: 80
@@ -7095,7 +7098,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   - {fileID: 11400000, guid: a50a283c47c96454db24cf144d06a62a, type: 2}
   - {fileID: 11400000, guid: 476db106ab13ecb48b197e05c3cb9dd4, type: 2}
-  - {fileID: 11400000, guid: 03f1274b9a1eea84b9a0c851301b7fde, type: 2}
   tutteLeAbilita:
   - {fileID: 11400000, guid: ae4ebbd0c5820ac4faf7f74a9d1949a5, type: 2}
   - {fileID: 11400000, guid: 258c1f5a0cc6a1546a494e3661438f8c, type: 2}
@@ -7834,8 +7836,9 @@ MonoBehaviour:
   livello: 1
   forza: 4
   destrezza: 7
-  costituzione: 10
-  intelligenza: 1
+  resistenza: 10
+  aura: 10
+  influenza: 10
   canvasUI: {fileID: 37323767}
   hpBase: 120
   nenBase: 0
