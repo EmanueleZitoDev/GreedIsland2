@@ -23,21 +23,18 @@ public class EffettoDanno : EffettoAbilita
         foreach (var s in scalings)
             dannoTotale += Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore);
 
-        // Applica modificatore stance
-        float modDanno = contesto.GetModificatoreDanno(tagsAbilita);
-        dannoTotale = Mathf.FloorToInt(dannoTotale * modDanno);
+        // Accumula il danno nel contesto invece di infliggerlo subito
+        contesto.dannoAccumulato += dannoTotale;
+        contesto.bersaglioDanno = bersaglio;
 
-        int dannoEffettivo = bersaglio.SubisciDanno(dannoTotale);
-        Debug.Log(esecutore.nomePersonaggio + " infligge " + dannoEffettivo + " danni a " + bersaglio.nomePersonaggio +" tramite " + (contesto.abilitaCorrente != null ? contesto.abilitaCorrente.name : "abilità sconosciuta"));
+        Debug.Log(esecutore.nomePersonaggio + " accumula " + dannoTotale + " danni — totale: " + contesto.dannoAccumulato);
 
         // Rimuovi buff richiesti dalle condizioni
         foreach (var condizione in condizioni)
         {
             if (condizione is CondizioneBuffAttivi condBuff)
-            {
                 foreach (string buff in condBuff.buffRichiesti)
                     contesto.RimuoviBuff(esecutore, buff);
-            }
         }
     }
 

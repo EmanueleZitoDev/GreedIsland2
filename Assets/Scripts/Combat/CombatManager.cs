@@ -206,12 +206,14 @@ public class CombatManager : MonoBehaviour
     }
 
     // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità
+    // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità.
+    // Accumula il danno nel contesto e lo infligge alla fine con i modificatori applicati.
     void EseguiAbilita(AzioneCombattimento azione)
     {
         if (azione.abilita == null) return;
 
-        // Aggiorna abilità corrente nel contesto
         contesto.abilitaCorrente = azione.abilita;
+        contesto.ResetDannoAccumulato();
 
         // Consuma il Nen
         if (azione.abilita.costoNen > 0)
@@ -224,7 +226,7 @@ public class CombatManager : MonoBehaviour
             }
         }
 
-        // Esegui gli effetti dei buff attivi con condizioni soddisfatte
+        // Fase 1 — Effetti buff attivi
         foreach (BuffDato buff in contesto.GetBuffAttivi(azione.esecutore))
         {
             if (buff == null || buff.effetti == null) continue;
@@ -232,10 +234,7 @@ public class CombatManager : MonoBehaviour
             foreach (var condizione in buff.condizioniAttivazione)
             {
                 if (!condizione.Valuta(azione.esecutore, azione.bersaglio, contesto))
-                {
-                    condizioniSoddisfatte = false;
-                    break;
-                }
+                { condizioniSoddisfatte = false; break; }
             }
             if (!condizioniSoddisfatte) continue;
             foreach (var effetto in buff.effetti)
@@ -245,12 +244,32 @@ public class CombatManager : MonoBehaviour
             }
         }
 
-        // Esegui gli effetti dell'abilità attiva
+        // Fase 2 — Effetti abilità attiva
         foreach (var effetto in azione.abilita.effetti)
         {
             if (effetto == null) continue;
             if (effetto.CondizioneSoddisfatta(azione.esecutore, azione.bersaglio, contesto))
                 effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
+        }
+
+        // Fase 3 — Modificatori stance sul danno accumulato
+        if (contesto.stanceAttiva?.effetti != null)
+        {
+            foreach (var effetto in contesto.stanceAttiva.effetti)
+            {
+                if (effetto == null) continue;
+                if (effetto is EffettoModificatoreDannoAccumulato)
+                    effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
+            }
+        }
+
+        // Infliggi il danno finale
+        if (contesto.dannoAccumulato > 0 && contesto.bersaglioDanno != null)
+        {
+            int dannoEffettivo = contesto.bersaglioDanno.SubisciDanno(contesto.dannoAccumulato, contesto);
+            Debug.Log(azione.esecutore.nomePersonaggio + " infligge " + dannoEffettivo +
+                " danni a " + contesto.bersaglioDanno.nomePersonaggio);
+            contesto.ResetDannoAccumulato();
         }
     }
 

@@ -19,6 +19,17 @@ public class ContestoCombattimento
 
     private HashSet<string> tagsDinamici = new HashSet<string>();
 
+    // Danno accumulato durante l'esecuzione degli effetti — inflitto alla fine
+    public int dannoAccumulato = 0;
+    public CombatUnit bersaglioDanno = null;
+
+    // Resetta il danno accumulato dopo ogni azione
+    public void ResetDannoAccumulato()
+    {
+        dannoAccumulato = 0;
+        bersaglioDanno = null;
+    }
+
     // Aggiunge un buff al personaggio. Se già presente, fa refresh o stack in base al parametro
     public void AggiungiBuff(CombatUnit unita, BuffDato buff, bool stack = false)
     {
