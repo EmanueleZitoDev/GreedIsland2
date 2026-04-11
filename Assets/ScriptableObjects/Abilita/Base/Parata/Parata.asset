@@ -26,4 +26,5 @@ MonoBehaviour:
   tags:
   - '[fisico]'
   - '[difesa]'
-  effetti: []
+  effetti:
+  - {fileID: 11400000, guid: e4d977bf2de2e894caaf33fa04dc9e53, type: 2}

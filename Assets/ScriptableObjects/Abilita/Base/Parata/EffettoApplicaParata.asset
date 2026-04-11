@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: EffettoApplicaParata
   m_EditorClassIdentifier: Assembly-CSharp::EffettoApplicaParata
   condizioni: []
-  buffParata: {fileID: 0}
+  buffParata: {fileID: 11400000, guid: 9d9165d96fa001a4497f56bfb96436c9, type: 2}

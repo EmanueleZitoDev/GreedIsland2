@@ -4643,6 +4643,7 @@ MonoBehaviour:
   pulsanteTen: {fileID: 698695008}
   pulsanteRen: {fileID: 1532812363}
   attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
+  parata: {fileID: 11400000, guid: 68a9d43f93ce05b4a962bbf3ef40a84d, type: 2}
 --- !u!114 &1209106635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7258,6 +7259,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
+      propertyPath: forza
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
       propertyPath: hpBase
       value: 10000
