@@ -1,5 +1,10 @@
 using UnityEngine;
 
+public enum TipoAzione
+{
+    UsaAbilita
+}
+
 [CreateAssetMenu(fileName = "NuovaAbilita", menuName = "GreedIsland/Abilita")]
 public class AbilitaDato : ScriptableObject
 {
@@ -23,7 +28,10 @@ public class AbilitaDato : ScriptableObject
     public int priorita = 3;
     public string[] tags;
 
+    [Header("Passiva")]
+    public BuffDato buffPassivo;        // Buff permanente applicato all'inizio del combattimento (solo se isPassiva)
+
     [Header("Effetti")]
-    public EffettoAbilita[] effetti;    // Descrizione testuale dell'effetto
+    public EffettoAbilita[] effetti;
 
 }

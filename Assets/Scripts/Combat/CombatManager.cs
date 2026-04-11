@@ -2,30 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum TipoAzione
-{
-    UsaAbilita
-}
-
-public class AzioneCombattimento
-{
-    public CombatUnit esecutore;
-    public CombatUnit bersaglio;
-    public TipoAzione tipo;
-    public StanceTipo stance;
-    public AbilitaDato abilita;
-    public int priorita => abilita != null ? abilita.priorita : 3;
-
-    public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo, StanceTipo stance = StanceTipo.Ten, AbilitaDato abilita = null)
-    {
-        this.esecutore = esecutore;
-        this.bersaglio = bersaglio;
-        this.tipo = tipo;
-        this.stance = stance;
-        this.abilita = abilita;
-    }
-}
-
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance;
@@ -37,20 +13,19 @@ public class CombatManager : MonoBehaviour
     [Header("Abilità Base")]
     public AbilitaDato attaccoFisicoBase;
 
+    [Header("Stance")]
+    public BuffDato buffDatoRen;
+
     private int turnoCorrente = 1;
     private bool combattimentoAttivo = false;
     private bool inFaseSelezione = false;
     private bool azioniConfermate = false;
     private InteractableObject oggettoInterazione;
 
-    private AzioneCombattimento[] azioniGiocatore;
-    private AzioneCombattimento[] azioniMostro;
+    private Azione[] azioniGiocatore;
+    private Azione[] azioniMostro;
 
     private ContestoCombattimento contesto = new ContestoCombattimento();
-
-    [Header("Stance")]
-    public AbilitaDato stanceTen;
-    public AbilitaDato stanceRen;
 
     // Inizializza il singleton — distrugge i duplicati
     void Awake()
@@ -70,17 +45,12 @@ public class CombatManager : MonoBehaviour
         combattimentoAttivo = true;
         turnoCorrente = 1;
 
-        
-        azioniGiocatore = new AzioneCombattimento[giocatore.azioniPerTurno];
-        azioniMostro = new AzioneCombattimento[mostro.azioniPerTurno];
-
-        contesto.stance[StanceTipo.Ten] = stanceTen;
-        contesto.stance[StanceTipo.Ren] = stanceRen;
+        azioniGiocatore = new Azione[giocatore.azioniPerTurno];
+        azioniMostro = new Azione[mostro.azioniPerTurno];
 
         giocatore.stanceCorrente = StanceTipo.Ten;
         mostro.stanceCorrente = StanceTipo.Ten;
 
-        // Applica i buff permanenti delle abilità passive sbloccate
         ApplicaPassive(giocatore);
         ApplicaPassive(mostro);
 
@@ -91,7 +61,8 @@ public class CombatManager : MonoBehaviour
         CombatUI.Instance.MostraCombatUI();
     }
 
-    // Scorre le abilità passive sbloccate del personaggio e applica i loro buff permanenti al contesto
+    // Le abilità passive vengono aggiunte come BuffAttivo permanente (durata -1).
+    // Vengono valutate ogni azione come qualunque altro buff attivo.
     void ApplicaPassive(CombatUnit unita)
     {
         SkillTreePersonaggio skillTree = unita.GetComponent<SkillTreePersonaggio>();
@@ -99,16 +70,12 @@ public class CombatManager : MonoBehaviour
 
         foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)
         {
-            if (abilita == null || !abilita.isPassiva) continue;
-            foreach (var effetto in abilita.effetti)
-            {
-                if (effetto == null) continue;
-                effetto.Esegui(unita, null, contesto);
-            }
+            if (abilita == null || !abilita.isPassiva || abilita.buffPassivo == null) continue;
+            unita.AggiungiBuff(new BuffAttivo(abilita.buffPassivo, null, -1, TipoScalaturaDurata.PerAzionePortatore));
         }
     }
 
-    // Loop principale dei turni: raccoglie le azioni del giocatore, genera quelle del mostro e le esegue in ordine di destrezza
+    // Loop principale dei turni: raccoglie le azioni, costruisce il Turno e lo esegue fase per fase
     IEnumerator GestisciTurno()
     {
         Debug.Log("GestisciTurno avviato");
@@ -130,15 +97,26 @@ public class CombatManager : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
 
-            // Costruisce la lista di tutte le azioni del turno e le ordina
-            List<AzioneCombattimento> tutteLeAzioni = CostruisciListaAzioni();
-
-            // Esegui le azioni in ordine
-            foreach (AzioneCombattimento azione in tutteLeAzioni)
+            Turno turno = Turno.Costruisci(turnoCorrente, new List<(CombatUnit, List<Azione>)>
             {
-                yield return StartCoroutine(EseguiAzione(azione));
-                if (VerificaFine()) yield break;
-                yield return new WaitForSeconds(0.5f);
+                (giocatore, new List<Azione>(azioniGiocatore)),
+                (mostro,    new List<Azione>(azioniMostro))
+            });
+
+            foreach (Fase fase in turno.fasi)
+            {
+                ApplicaStanceInizioFase(fase, turno.personaggi);
+
+                foreach (Azione azione in fase.azioni)
+                {
+                    yield return StartCoroutine(EseguiAzione(azione));
+                    if (VerificaFine()) yield break;
+                    yield return new WaitForSeconds(0.5f);
+                }
+
+                // Fine fase — scala i buff PerFase su tutti i personaggi
+                giocatore.ScalaBuffPerFase();
+                mostro.ScalaBuffPerFase();
             }
 
             giocatore.RigeneraNen();
@@ -148,171 +126,89 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    // Costruisce la lista ordinata alternando le azioni per slot.
-    // Per ogni slot confronta priorità di giocatore e mostro — agisce prima chi ha priorità più bassa.
-    // A parità di priorità agisce prima chi ha DES più alta.
-    List<AzioneCombattimento> CostruisciListaAzioni()
-    {
-        List<AzioneCombattimento> lista = new List<AzioneCombattimento>();
-        int maxAzioni = Mathf.Max(giocatore.azioniPerTurno, mostro.azioniPerTurno);
-
-        for (int i = 0; i < maxAzioni; i++)
-        {
-            AzioneCombattimento azioneGiocatore = i < azioniGiocatore.Length ? azioniGiocatore[i] : null;
-            AzioneCombattimento azioneMostro = i < azioniMostro.Length ? azioniMostro[i] : null;
-
-            if (azioneGiocatore == null && azioneMostro == null) continue;
-            if (azioneGiocatore == null) { lista.Add(azioneMostro); continue; }
-            if (azioneMostro == null) { lista.Add(azioneGiocatore); continue; }
-
-            // Confronta priorità — priorità più bassa agisce prima
-            if (azioneGiocatore.priorita < azioneMostro.priorita)
-            {
-                lista.Add(azioneGiocatore);
-                lista.Add(azioneMostro);
-            }
-            else if (azioneMostro.priorita < azioneGiocatore.priorita)
-            {
-                lista.Add(azioneMostro);
-                lista.Add(azioneGiocatore);
-            }
-            else
-            {
-                // Parità di priorità — agisce prima chi ha DES più alta
-                if (giocatore.GetDestrezza() >= mostro.GetDestrezza())
-                {
-                    lista.Add(azioneGiocatore);
-                    lista.Add(azioneMostro);
-                }
-                else
-                {
-                    lista.Add(azioneMostro);
-                    lista.Add(azioneGiocatore);
-                }
-            }
-        }
-
-        return lista;
-    }
-
-    // Esegue una singola azione: imposta la stance, applica i tag dinamici, esegue l'abilità e decrementa i buff
-    IEnumerator EseguiAzione(AzioneCombattimento azione)
+    // Esegue una singola azione: imposta la stance effettiva, popola il contesto, esegue l'abilità e scala i buff
+    IEnumerator EseguiAzione(Azione azione)
     {
         if (azione == null) yield break;
 
-        azione.esecutore.stanceCorrente = azione.stance;
+        azione.esecutore.stanceCorrente = azione.stancePianificata;
 
-        if (azione.stance == StanceTipo.Ren)
+        if (azione.stancePianificata == StanceTipo.Ren)
         {
             bool renRiuscito = azione.esecutore.ConsumaNenRen();
             if (!renRiuscito)
                 azione.esecutore.stanceCorrente = StanceTipo.Ten;
         }
 
-        contesto.esecutoreAzioneCorrente = azione.esecutore;
-        contesto.bersaglioAzioneCorrente = azione.bersaglio;
-        contesto.tipoAzioneCorrente = azione.tipo;
-        contesto.stanceAttiva = GetStanceAbilita(azione.esecutore.stanceCorrente);
-
-        // Reset tag dinamici e applica quelli della stance offensiva
-        contesto.ResetTagDinamici();
-        if (contesto.stanceAttiva?.effetti != null)
-            foreach (var effetto in contesto.stanceAttiva.effetti)
-                if (effetto is EffettoAggiungTag tagEffect)
-                    tagEffect.Esegui(azione.esecutore, azione.bersaglio, contesto);
-
-        // Applica stance difensiva del bersaglio — accumula difesa nel contesto
-        contesto.ResetDifesaAccumulata();
-        AbilitaDato stanceBersaglio = GetStanceAbilita(azione.bersaglio.stanceCorrente);
-        if (stanceBersaglio?.effetti != null)
-            foreach (var effetto in stanceBersaglio.effetti)
-                if (effetto is EffettoModificatoreDifesa mod)
-                {
-                    int difesa = mod.CalcolaDifesa(azione.bersaglio);
-                    contesto.difesaAccumulata += difesa;
-                    Debug.Log(azione.bersaglio.nomePersonaggio + " accumula " + difesa +
-                        " difesa da stance — totale: " + contesto.difesaAccumulata);
-                }
+        contesto.esecutore = azione.esecutore;
+        contesto.bersaglio = azione.bersaglio;
+        contesto.stanceAttiva = azione.esecutore.stanceCorrente;
+        contesto.ResetAccumulatori();
 
         EseguiAbilita(azione);
 
-        contesto.DecrementaBuffDopoAzione(azione.esecutore);
+        // Scala buff per azione sull'esecutore (portatore) e su tutti i personaggi (caster)
+        azione.esecutore.ScalaBuffPerAzionePortatore();
+        giocatore.ScalaBuffPerAzioneCaster(azione.esecutore);
+        mostro.ScalaBuffPerAzioneCaster(azione.esecutore);
+
         yield return null;
     }
 
-    // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità
-    // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità.
-    // Accumula il danno nel contesto e lo infligge alla fine con i modificatori applicati.
-    void EseguiAbilita(AzioneCombattimento azione)
+    // Consuma il Nen, esegue gli effetti dei buff attivi compatibili, poi gli effetti dell'abilità e infligge il danno
+    void EseguiAbilita(Azione azione)
     {
-        if (azione.abilita == null) return;
+        if (azione.abilitaAttiva == null) return;
 
-        contesto.abilitaCorrente = azione.abilita;
-        contesto.ResetDannoAccumulato();
+        contesto.abilitaCorrente = azione.abilitaAttiva;
 
         // Consuma il Nen
-        if (azione.abilita.costoNen > 0)
+        if (azione.abilitaAttiva.costoNen > 0)
         {
-            bool ok = azione.esecutore.ConsumaNen(azione.abilita.costoNen);
+            bool ok = azione.esecutore.ConsumaNen(azione.abilitaAttiva.costoNen);
             if (!ok)
             {
-                Debug.Log("Nen insufficiente per: " + azione.abilita.nomeAbilita);
+                Debug.Log("Nen insufficiente per: " + azione.abilitaAttiva.nomeAbilita);
                 return;
             }
         }
 
-        // Fase 1 — Effetti buff attivi
-        foreach (BuffDato buff in contesto.GetBuffAttivi(azione.esecutore))
+        // Fase 1 — Effetti dei buff attivi dell'esecutore
+        foreach (BuffAttivo buffAttivo in azione.esecutore.GetBuffAttivi())
         {
-            if (buff == null || buff.effetti == null) continue;
+            if (buffAttivo == null || buffAttivo.dato == null || buffAttivo.dato.effetti == null) continue;
             bool condizioniSoddisfatte = true;
-            foreach (var condizione in buff.condizioniAttivazione)
+            foreach (var condizione in buffAttivo.dato.condizioniAttivazione)
             {
                 if (!condizione.Valuta(azione.esecutore, azione.bersaglio, contesto))
                 { condizioniSoddisfatte = false; break; }
             }
             if (!condizioniSoddisfatte) continue;
-            foreach (var effetto in buff.effetti)
+            foreach (var effetto in buffAttivo.dato.effetti)
             {
                 if (effetto == null) continue;
                 effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
             }
         }
 
-        // Fase 2 — Effetti abilità attiva
-        foreach (var effetto in azione.abilita.effetti)
+        // Fase 2 — Effetti dell'abilità attiva
+        foreach (var effetto in azione.abilitaAttiva.effetti)
         {
             if (effetto == null) continue;
             if (effetto.CondizioneSoddisfatta(azione.esecutore, azione.bersaglio, contesto))
                 effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
         }
 
-        // Fase 3 — Modificatori stance sul danno accumulato
-        if (contesto.stanceAttiva?.effetti != null)
-        {
-            foreach (var effetto in contesto.stanceAttiva.effetti)
-            {
-                if (effetto == null) continue;
-                if (effetto is EffettoModificatoreDannoAccumulato)
-                    effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
-            }
-        }
-
-        // Infliggi il danno finale
-        if (contesto.dannoAccumulato > 0 && contesto.bersaglioDanno != null)
-        {
-            int dannoEffettivo = contesto.bersaglioDanno.SubisciDanno(contesto.dannoAccumulato, contesto);
-            //Debug.Log(azione.esecutore.nomePersonaggio + " infligge " + dannoEffettivo +
-            //    " danni a " + contesto.bersaglioDanno.nomePersonaggio);
-            contesto.ResetDannoAccumulato();
-        }
+        // Infliggi il danno accumulato direttamente al bersaglio del contesto
+        if (contesto.dannoAccumulato > 0)
+            contesto.bersaglio.SubisciDanno(contesto.dannoAccumulato, contesto);
     }
 
     // Riempie le azioni del mostro con attacchi fisici base in Ten (AI semplice)
     void ScegliAzioniMostro()
     {
         for (int i = 0; i < mostro.azioniPerTurno; i++)
-            azioniMostro[i] = new AzioneCombattimento(mostro, giocatore, TipoAzione.UsaAbilita, StanceTipo.Ten, attaccoFisicoBase);
+            azioniMostro[i] = new Azione(mostro, giocatore, attaccoFisicoBase, StanceTipo.Ten);
     }
 
     // Controlla se uno dei due combattenti è morto e termina il combattimento di conseguenza
@@ -356,7 +252,7 @@ public class CombatManager : MonoBehaviour
     public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
-        azioniGiocatore[indiceSlot] = new AzioneCombattimento(giocatore, mostro, TipoAzione.UsaAbilita, stance, abilita);
+        azioniGiocatore[indiceSlot] = new Azione(giocatore, mostro, abilita, stance);
     }
 
     // Svuota lo slot all'indice indicato rimuovendo l'azione assegnata
@@ -379,7 +275,7 @@ public class CombatManager : MonoBehaviour
         inFaseSelezione = false;
     }
 
-    // Azzera il ContestoCombattimento, rimuovendo tutti i buff e i tag dinamici attivi e ferma tutte le coroutine attive.
+    // Azzera il contesto e ferma tutte le coroutine attive
     public void ResetContesto()
     {
         StopAllCoroutines();
@@ -387,19 +283,56 @@ public class CombatManager : MonoBehaviour
         contesto = new ContestoCombattimento();
     }
 
+    // Applica la stance effettiva a inizio fase per ogni personaggio.
+    // Usa la stance forzata da buff se presente, altrimenti quella pianificata nell'azione.
+    // Sincronizza il buff Ren: lo aggiunge se stance == Ren, lo rimuove altrimenti.
+    void ApplicaStanceInizioFase(Fase fase, List<CombatUnit> personaggi)
+    {
+        foreach (CombatUnit personaggio in personaggi)
+        {
+            StanceTipo? stanceForzata = GetStanceForzataDaBuff(personaggio);
+
+            StanceTipo stanceEffettiva;
+            if (stanceForzata.HasValue)
+            {
+                stanceEffettiva = stanceForzata.Value;
+            }
+            else
+            {
+                Azione azione = fase.azioni.Find(a => a.esecutore == personaggio);
+                stanceEffettiva = azione != null ? azione.stancePianificata : personaggio.stanceCorrente;
+            }
+
+            personaggio.stanceCorrente = stanceEffettiva;
+
+            if (stanceEffettiva == StanceTipo.Ren && !personaggio.HaBuff("Ren") && buffDatoRen != null)
+                personaggio.AggiungiBuff(new BuffAttivo(buffDatoRen, null, -1, TipoScalaturaDurata.PerAzionePortatore));
+            else if (stanceEffettiva != StanceTipo.Ren && personaggio.HaBuff("Ren"))
+                personaggio.RimuoviBuff("Ren");
+        }
+    }
+
+    // Cerca tra i buff attivi del personaggio uno con tag [forza-stance].
+    // Restituisce la StanceTipo corrispondente al nomeBuff, null se non trovato.
+    StanceTipo? GetStanceForzataDaBuff(CombatUnit personaggio)
+    {
+        foreach (BuffAttivo buff in personaggio.GetBuffAttivi())
+        {
+            if (buff.dato?.tags == null) continue;
+            foreach (string tag in buff.dato.tags)
+            {
+                if (tag.Trim().ToLower() == "forza-stance")
+                {
+                    if (System.Enum.TryParse(buff.dato.nomeBuff, true, out StanceTipo stance))
+                        return stance;
+                }
+            }
+        }
+        return null;
+    }
+
     // Restituisce true se il combattimento è in corso
     public bool IsCombattimentoAttivo() { return combattimentoAttivo; }
     // Restituisce true se il giocatore sta ancora selezionando le azioni
     public bool IsInFaseSelezione() { return inFaseSelezione; }
-    // Restituisce l'AbilitaDato della stance attiva (Ten o Ren)
-    AbilitaDato GetStanceAbilita(StanceTipo stance)
-    {
-        switch (stance)
-        {
-            case StanceTipo.Ten: return stanceTen;
-            case StanceTipo.Ren: return stanceRen;
-            default: return stanceTen;
-        }
-    }
-
 }

@@ -10,7 +10,7 @@ public class EffettoRimuoviBuff : EffettoAbilita
     {
         foreach (string buff in buffDaRimuovere)
         {
-            contesto.RimuoviBuff(esecutore, buff);
+            esecutore.RimuoviBuff(buff);
             Debug.Log("Buff rimosso: " + buff);
         }
     }

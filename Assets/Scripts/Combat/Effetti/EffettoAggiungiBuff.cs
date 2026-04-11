@@ -11,7 +11,6 @@ public class EffettoAggiungiBuff : EffettoAbilita
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
         if (buff == null) return;
-        bool stack = comportamento == ComportamentoBuff.Stack;
-        contesto.AggiungiBuff(esecutore, buff, stack);
+        esecutore.AggiungiBuff(new BuffAttivo(buff, esecutore, buff.durataAzioni, TipoScalaturaDurata.PerAzionePortatore));
     }
 }

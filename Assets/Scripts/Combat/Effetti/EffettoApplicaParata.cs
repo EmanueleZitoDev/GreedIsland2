@@ -8,7 +8,7 @@ public class EffettoApplicaParata : EffettoAbilita
 
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
-        contesto.AggiungiBuff(esecutore, buffParata);
+        esecutore.AggiungiBuff(new BuffAttivo(buffParata, esecutore, buffParata.durataAzioni, TipoScalaturaDurata.PerAzionePortatore));
         Debug.Log(esecutore.nomePersonaggio + " si mette in parata.");
     }
 }

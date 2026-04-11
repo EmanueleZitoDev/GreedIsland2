@@ -10,7 +10,7 @@ public class CondizioneBuffAttivi : CondizioneAbilita
     {
         foreach (string buff in buffRichiesti)
         {
-            if (!contesto.HaBuff(esecutore, buff))
+            if (!esecutore.HaBuff(buff))
                 return false;
         }
         return true;

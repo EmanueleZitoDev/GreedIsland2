@@ -90,3 +90,7 @@ Exploration → Press E near monster (InteractableObject)
 - No game-over screen on player defeat
 - No initiative system (who confirms first acts first)
 - No quest system, progression, or save state
+
+
+## Architettura Combat
+Leggi Docs/ArchitetturaCombattimento_v1.md prima di toccare qualsiasi file del sistema di combattimento.

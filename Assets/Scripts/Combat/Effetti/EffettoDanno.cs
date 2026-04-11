@@ -25,7 +25,6 @@ public class EffettoDanno : EffettoAbilita
 
         // Accumula il danno nel contesto invece di infliggerlo subito
         contesto.dannoAccumulato += dannoTotale;
-        contesto.bersaglioDanno = bersaglio;
 
         //Debug.Log(esecutore.nomePersonaggio + " accumula " + dannoTotale + " danni — totale: " + contesto.dannoAccumulato);
 
@@ -34,7 +33,7 @@ public class EffettoDanno : EffettoAbilita
         {
             if (condizione is CondizioneBuffAttivi condBuff)
                 foreach (string buff in condBuff.buffRichiesti)
-                    contesto.RimuoviBuff(esecutore, buff);
+                    esecutore.RimuoviBuff(buff);
         }
     }
 

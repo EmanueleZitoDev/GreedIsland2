@@ -1,11 +1,13 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public enum StanceTipo
 {
     Ten,
-    Ren
+    Ren,
+    Zetsu
 }
 
 public class CombatUnit : MonoBehaviour
@@ -48,6 +50,37 @@ public class CombatUnit : MonoBehaviour
     [HideInInspector]
     public StanceTipo stanceCorrente = StanceTipo.Ten;
 
+    // Buff attivi sul personaggio — include passive (durata -1) e buff temporanei
+    private List<BuffAttivo> buffAttivi = new List<BuffAttivo>();
+
+    // Aggiunge un buff. Se un buff con lo stesso nome è già presente lo sostituisce (refresh).
+    public void AggiungiBuff(BuffAttivo buff)
+    {
+        if (buff == null || buff.dato == null) return;
+        RimuoviBuff(buff.dato.nomeBuff);
+        buffAttivi.Add(buff);
+        Debug.Log(nomePersonaggio + " ottiene buff: " + buff.dato.nomeBuff +
+            (buff.IsPermanente ? " (permanente)" : " (durata " + buff.durata + ")"));
+    }
+
+    // Rimuove il buff con il nome indicato, se presente.
+    public void RimuoviBuff(string nomeBuff)
+    {
+        buffAttivi.RemoveAll(b => b.dato != null && b.dato.nomeBuff == nomeBuff);
+    }
+
+    // Restituisce true se il personaggio ha un buff attivo con il nome indicato.
+    public bool HaBuff(string nomeBuff)
+    {
+        return buffAttivi.Exists(b => b.dato != null && b.dato.nomeBuff == nomeBuff);
+    }
+
+    // Restituisce la lista dei buff attivi (copia difensiva per evitare modifiche esterne durante l'iterazione).
+    public List<BuffAttivo> GetBuffAttivi()
+    {
+        return new List<BuffAttivo>(buffAttivi);
+    }
+
     // Nasconde il canvas UI e calcola HP e Nen massimi in base alle statistiche
     void Awake()
     {
@@ -86,21 +119,20 @@ public class CombatUnit : MonoBehaviour
 
         if (contesto != null)
         {
-            if (contesto.HaBuff(this, "Parata"))
+            if (this.HaBuff("Parata"))
             {
                 // Esegui effetti parata — aggiungono difesa a difesaAccumulata
-                BuffDato buffParata = contesto.GetBuff(this, "Parata");
-                if (buffParata?.effetti != null)
-                    foreach (var effetto in buffParata.effetti)
+                BuffAttivo buffParata = GetBuffAttivi().Find(b => b.dato != null && b.dato.nomeBuff == "Parata");
+                if (buffParata?.dato.effetti != null)
+                    foreach (var effetto in buffParata.dato.effetti)
                         if (effetto != null)
                             effetto.Esegui(this, null, contesto);
 
-                contesto.RimuoviBuff(this, "Parata");
+                this.RimuoviBuff("Parata");
             }
 
             // Leggi difesaAccumulata una sola volta — include stance + parata
             difesa += contesto.difesaAccumulata;
-            contesto.ResetDifesaAccumulata();
         }
 
         int dannoEffettivo = Mathf.Max(0, danno - difesa);
@@ -111,12 +143,11 @@ public class CombatUnit : MonoBehaviour
         return dannoEffettivo;
     }
 
-    // Calcola la difesa in base alla stance corrente
-    // Ten: 10% del Nen attuale — Ren: 20% del Nen attuale
+    // Restituisce il valore di difesa base — i modificatori stance vengono applicati
+    // durante la risoluzione dell'azione tramite il sistema di buff
     public int CalcolaDifesa()
     {
-        float percentuale = stanceCorrente == StanceTipo.Ren ? 0.2f : 0.1f;
-        return Mathf.FloorToInt(nenAttuali * percentuale);
+        return 0;
     }
 
     // Consuma Nen per l'attivazione di Ren (5 Nen per azione)
@@ -165,13 +196,10 @@ public class CombatUnit : MonoBehaviour
     }
 
     // Calcola danno attacco fisico base — formula dal GDD: LV + FOR
-    // Se la stance è Ren, applica +10% ai danni
+    // I modificatori stance vengono applicati durante la risoluzione dell'azione tramite il sistema di buff
     public int CalcolaDannoBase()
     {
-        int dannoBase = livello + forza;
-        if (stanceCorrente == StanceTipo.Ren)
-            dannoBase = Mathf.FloorToInt(dannoBase * 1.1f);
-        return dannoBase;
+        return livello + forza;
     }
 
     // Controlla se è morto
@@ -209,6 +237,64 @@ public class CombatUnit : MonoBehaviour
         nenAttuali = nenMax;
         stanceCorrente = StanceTipo.Ten;
         AggiornaBarre();
+    }
+
+    // Decrementa i buff PerAzionePortatore dopo ogni azione del portatore e rimuove quelli scaduti.
+    public void ScalaBuffPerAzionePortatore()
+    {
+        List<BuffAttivo> daRimuovere = new List<BuffAttivo>();
+        foreach (BuffAttivo buff in buffAttivi)
+        {
+            if (buff.IsPermanente) continue;
+            if (buff.tipoScalatura != TipoScalaturaDurata.PerAzionePortatore) continue;
+            buff.durata--;
+            if (buff.durata <= 0)
+                daRimuovere.Add(buff);
+        }
+        foreach (BuffAttivo buff in daRimuovere)
+        {
+            Debug.Log("Buff scaduto: " + buff.dato.nomeBuff + " su " + nomePersonaggio);
+            buffAttivi.Remove(buff);
+        }
+    }
+
+    // Decrementa i buff PerAzioneCaster quando il caster specificato esegue un'azione e rimuove quelli scaduti.
+    public void ScalaBuffPerAzioneCaster(CombatUnit caster)
+    {
+        List<BuffAttivo> daRimuovere = new List<BuffAttivo>();
+        foreach (BuffAttivo buff in buffAttivi)
+        {
+            if (buff.IsPermanente) continue;
+            if (buff.tipoScalatura != TipoScalaturaDurata.PerAzioneCaster) continue;
+            if (buff.caster != caster) continue;
+            buff.durata--;
+            if (buff.durata <= 0)
+                daRimuovere.Add(buff);
+        }
+        foreach (BuffAttivo buff in daRimuovere)
+        {
+            Debug.Log("Buff scaduto: " + buff.dato.nomeBuff + " su " + nomePersonaggio);
+            buffAttivi.Remove(buff);
+        }
+    }
+
+    // Decrementa i buff PerFase a fine fase e rimuove quelli scaduti.
+    public void ScalaBuffPerFase()
+    {
+        List<BuffAttivo> daRimuovere = new List<BuffAttivo>();
+        foreach (BuffAttivo buff in buffAttivi)
+        {
+            if (buff.IsPermanente) continue;
+            if (buff.tipoScalatura != TipoScalaturaDurata.PerFase) continue;
+            buff.durata--;
+            if (buff.durata <= 0)
+                daRimuovere.Add(buff);
+        }
+        foreach (BuffAttivo buff in daRimuovere)
+        {
+            Debug.Log("Buff scaduto: " + buff.dato.nomeBuff + " su " + nomePersonaggio);
+            buffAttivi.Remove(buff);
+        }
     }
 
     // Getter pubblici
