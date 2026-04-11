@@ -14,6 +14,7 @@ public class AzioneCombattimento
     public TipoAzione tipo;
     public StanceTipo stance;
     public AbilitaDato abilita;
+    public int priorita => abilita != null ? abilita.priorita : 3;
 
     public AzioneCombattimento(CombatUnit esecutore, CombatUnit bersaglio, TipoAzione tipo, StanceTipo stance = StanceTipo.Ten, AbilitaDato abilita = null)
     {
@@ -69,8 +70,12 @@ public class CombatManager : MonoBehaviour
         combattimentoAttivo = true;
         turnoCorrente = 1;
 
+        
         azioniGiocatore = new AzioneCombattimento[giocatore.azioniPerTurno];
         azioniMostro = new AzioneCombattimento[mostro.azioniPerTurno];
+
+        contesto.stance[StanceTipo.Ten] = stanceTen;
+        contesto.stance[StanceTipo.Ren] = stanceRen;
 
         giocatore.stanceCorrente = StanceTipo.Ten;
         mostro.stanceCorrente = StanceTipo.Ten;
@@ -125,41 +130,15 @@ public class CombatManager : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
 
-            bool giocatoreVaPerPrimo = giocatore.GetDestrezza() >= mostro.GetDestrezza();
-            int maxAzioni = Mathf.Max(giocatore.azioniPerTurno, mostro.azioniPerTurno);
+            // Costruisce la lista di tutte le azioni del turno e le ordina
+            List<AzioneCombattimento> tutteLeAzioni = CostruisciListaAzioni();
 
-            for (int i = 0; i < maxAzioni; i++)
+            // Esegui le azioni in ordine
+            foreach (AzioneCombattimento azione in tutteLeAzioni)
             {
-                if (giocatoreVaPerPrimo)
-                {
-                    if (azioniGiocatore.Length > i)
-                    {
-                        yield return StartCoroutine(EseguiAzione(azioniGiocatore[i]));
-                        if (VerificaFine()) yield break;
-                        yield return new WaitForSeconds(0.5f);
-                    }
-                    if (azioniMostro.Length > i)
-                    {
-                        yield return StartCoroutine(EseguiAzione(azioniMostro[i]));
-                        if (VerificaFine()) yield break;
-                        yield return new WaitForSeconds(0.5f);
-                    }
-                }
-                else
-                {
-                    if (azioniMostro.Length > i)
-                    {
-                        yield return StartCoroutine(EseguiAzione(azioniMostro[i]));
-                        if (VerificaFine()) yield break;
-                        yield return new WaitForSeconds(0.5f);
-                    }
-                    if (azioniGiocatore.Length > i)
-                    {
-                        yield return StartCoroutine(EseguiAzione(azioniGiocatore[i]));
-                        if (VerificaFine()) yield break;
-                        yield return new WaitForSeconds(0.5f);
-                    }
-                }
+                yield return StartCoroutine(EseguiAzione(azione));
+                if (VerificaFine()) yield break;
+                yield return new WaitForSeconds(0.5f);
             }
 
             giocatore.RigeneraNen();
@@ -167,6 +146,53 @@ public class CombatManager : MonoBehaviour
 
             turnoCorrente++;
         }
+    }
+
+    // Costruisce la lista ordinata alternando le azioni per slot.
+    // Per ogni slot confronta priorità di giocatore e mostro — agisce prima chi ha priorità più bassa.
+    // A parità di priorità agisce prima chi ha DES più alta.
+    List<AzioneCombattimento> CostruisciListaAzioni()
+    {
+        List<AzioneCombattimento> lista = new List<AzioneCombattimento>();
+        int maxAzioni = Mathf.Max(giocatore.azioniPerTurno, mostro.azioniPerTurno);
+
+        for (int i = 0; i < maxAzioni; i++)
+        {
+            AzioneCombattimento azioneGiocatore = i < azioniGiocatore.Length ? azioniGiocatore[i] : null;
+            AzioneCombattimento azioneMostro = i < azioniMostro.Length ? azioniMostro[i] : null;
+
+            if (azioneGiocatore == null && azioneMostro == null) continue;
+            if (azioneGiocatore == null) { lista.Add(azioneMostro); continue; }
+            if (azioneMostro == null) { lista.Add(azioneGiocatore); continue; }
+
+            // Confronta priorità — priorità più bassa agisce prima
+            if (azioneGiocatore.priorita < azioneMostro.priorita)
+            {
+                lista.Add(azioneGiocatore);
+                lista.Add(azioneMostro);
+            }
+            else if (azioneMostro.priorita < azioneGiocatore.priorita)
+            {
+                lista.Add(azioneMostro);
+                lista.Add(azioneGiocatore);
+            }
+            else
+            {
+                // Parità di priorità — agisce prima chi ha DES più alta
+                if (giocatore.GetDestrezza() >= mostro.GetDestrezza())
+                {
+                    lista.Add(azioneGiocatore);
+                    lista.Add(azioneMostro);
+                }
+                else
+                {
+                    lista.Add(azioneMostro);
+                    lista.Add(azioneGiocatore);
+                }
+            }
+        }
+
+        return lista;
     }
 
     // Esegue una singola azione: imposta la stance, applica i tag dinamici, esegue l'abilità e decrementa i buff
@@ -188,16 +214,25 @@ public class CombatManager : MonoBehaviour
         contesto.tipoAzioneCorrente = azione.tipo;
         contesto.stanceAttiva = GetStanceAbilita(azione.esecutore.stanceCorrente);
 
-        // Reset tag dinamici e applica quelli della stance
+        // Reset tag dinamici e applica quelli della stance offensiva
         contesto.ResetTagDinamici();
         if (contesto.stanceAttiva?.effetti != null)
-        {
             foreach (var effetto in contesto.stanceAttiva.effetti)
-            {
                 if (effetto is EffettoAggiungTag tagEffect)
                     tagEffect.Esegui(azione.esecutore, azione.bersaglio, contesto);
-            }
-        }
+
+        // Applica stance difensiva del bersaglio — accumula difesa nel contesto
+        contesto.ResetDifesaAccumulata();
+        AbilitaDato stanceBersaglio = GetStanceAbilita(azione.bersaglio.stanceCorrente);
+        if (stanceBersaglio?.effetti != null)
+            foreach (var effetto in stanceBersaglio.effetti)
+                if (effetto is EffettoModificatoreDifesa mod)
+                {
+                    int difesa = mod.CalcolaDifesa(azione.bersaglio);
+                    contesto.difesaAccumulata += difesa;
+                    Debug.Log(azione.bersaglio.nomePersonaggio + " accumula " + difesa +
+                        " difesa da stance — totale: " + contesto.difesaAccumulata);
+                }
 
         EseguiAbilita(azione);
 
@@ -267,8 +302,8 @@ public class CombatManager : MonoBehaviour
         if (contesto.dannoAccumulato > 0 && contesto.bersaglioDanno != null)
         {
             int dannoEffettivo = contesto.bersaglioDanno.SubisciDanno(contesto.dannoAccumulato, contesto);
-            Debug.Log(azione.esecutore.nomePersonaggio + " infligge " + dannoEffettivo +
-                " danni a " + contesto.bersaglioDanno.nomePersonaggio);
+            //Debug.Log(azione.esecutore.nomePersonaggio + " infligge " + dannoEffettivo +
+            //    " danni a " + contesto.bersaglioDanno.nomePersonaggio);
             contesto.ResetDannoAccumulato();
         }
     }

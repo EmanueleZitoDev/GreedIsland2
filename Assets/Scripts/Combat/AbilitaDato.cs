@@ -20,7 +20,7 @@ public class AbilitaDato : ScriptableObject
     public TipoAzione tipoAzione;
     public bool isPassiva;
     public int costoNen;
-    public int priorita;
+    public int priorita = 3;
     public string[] tags;
 
     [Header("Effetti")]

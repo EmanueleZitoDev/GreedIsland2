@@ -22,7 +22,7 @@ MonoBehaviour:
   tipoAzione: 1
   isPassiva: 0
   costoNen: 0
-  priorita: 0
+  priorita: 3
   tags:
   - '[mani nude]'
   - '[corpo a corpo]'

@@ -46,8 +46,10 @@ public class CombatUI : MonoBehaviour
     public Button pulsanteTen;
     public Button pulsanteRen;
 
+
     [Header("Abilità Base")]
     public AbilitaDato attaccoFisicoBase;
+    public AbilitaDato parata;
 
     private AbilitaDato[] abilitaInSlot;
 
@@ -210,6 +212,16 @@ public class CombatUI : MonoBehaviour
             Button btnAttaccoBtn = btnAttacco.GetComponent<Button>();
             btnAttaccoBtn.onClick.RemoveAllListeners();
             btnAttaccoBtn.onClick.AddListener(() => SelezionaAbilita(attaccoFisicoBase));
+        }
+        if (parata != null)
+        {
+            GameObject btnParata = Instantiate(templatePulsanteAzione, contenutoLista);
+            btnParata.SetActive(true);
+            TMP_Text testoParata = btnParata.GetComponentInChildren<TMP_Text>();
+            if (testoParata != null) testoParata.text = parata.nomeAbilita;
+            Button btnParataBtn = btnParata.GetComponent<Button>();
+            btnParataBtn.onClick.RemoveAllListeners();
+            btnParataBtn.onClick.AddListener(() => SelezionaAbilita(parata));
         }
 
         foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)

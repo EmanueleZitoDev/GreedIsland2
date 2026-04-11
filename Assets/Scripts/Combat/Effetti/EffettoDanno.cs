@@ -27,7 +27,7 @@ public class EffettoDanno : EffettoAbilita
         contesto.dannoAccumulato += dannoTotale;
         contesto.bersaglioDanno = bersaglio;
 
-        Debug.Log(esecutore.nomePersonaggio + " accumula " + dannoTotale + " danni — totale: " + contesto.dannoAccumulato);
+        //Debug.Log(esecutore.nomePersonaggio + " accumula " + dannoTotale + " danni — totale: " + contesto.dannoAccumulato);
 
         // Rimuovi buff richiesti dalle condizioni
         foreach (var condizione in condizioni)

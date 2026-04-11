@@ -82,15 +82,33 @@ public class CombatUnit : MonoBehaviour
     // Subisce danni — la difesa viene calcolata dalla stance corrente del difensore
     public int SubisciDanno(int danno, ContestoCombattimento contesto = null)
     {
-        int difesa = CalcolaDifesa();
+        int difesa = 0;
+
         if (contesto != null)
-            difesa = contesto.GetModificatoreDifesa(this);
+        {
+            if (contesto.HaBuff(this, "Parata"))
+            {
+                // Esegui effetti parata — aggiungono difesa a difesaAccumulata
+                BuffDato buffParata = contesto.GetBuff(this, "Parata");
+                if (buffParata?.effetti != null)
+                    foreach (var effetto in buffParata.effetti)
+                        if (effetto != null)
+                            effetto.Esegui(this, null, contesto);
+
+                contesto.RimuoviBuff(this, "Parata");
+            }
+
+            // Leggi difesaAccumulata una sola volta — include stance + parata
+            difesa += contesto.difesaAccumulata;
+            contesto.ResetDifesaAccumulata();
+        }
 
         int dannoEffettivo = Mathf.Max(0, danno - difesa);
         hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);
         AggiornaBarre();
+        Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo +
+            " danni (difesa totale: " + difesa + "). HP: " + hpAttuali + "/" + hpMax);
         return dannoEffettivo;
-        //Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo + " danni (difesa " + difesa + "). HP: " + hpAttuali + "/" + hpMax);
     }
 
     // Calcola la difesa in base alla stance corrente

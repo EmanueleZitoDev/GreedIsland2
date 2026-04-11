@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef7d486b12f740a4c9edc5bc65f3632b, type: 3}
-  m_Name: StanceRen
+  m_Name: Parata
   m_EditorClassIdentifier: Assembly-CSharp::AbilitaDato
-  id: 
-  nomeAbilita: 
+  id: PARATA
+  nomeAbilita: Parata
   descrizione: 
   albero: 0
   livelloHatsu: 0
@@ -22,9 +22,8 @@ MonoBehaviour:
   tipoAzione: 0
   isPassiva: 0
   costoNen: 0
-  priorita: 0
-  tags: []
-  effetti:
-  - {fileID: 11400000, guid: 9c7e2d14f8f60a14d9fdd23c90cfb92f, type: 2}
-  - {fileID: 11400000, guid: fb2fcf5b7e2df804bbcf91bf27460c09, type: 2}
-  - {fileID: 11400000, guid: dee5333531c03164c9086e320bfd23f2, type: 2}
+  priorita: 1
+  tags:
+  - '[fisico]'
+  - '[difesa]'
+  effetti: []

@@ -30,6 +30,14 @@ public class ContestoCombattimento
         bersaglioDanno = null;
     }
 
+    // Difesa accumulata durante l'esecuzione — applicata quando si subisce danno
+    public int difesaAccumulata = 0;
+
+    // Resetta la difesa accumulata
+    public void ResetDifesaAccumulata()
+    {
+        difesaAccumulata = 0;
+    }
     // Aggiunge un buff al personaggio. Se già presente, fa refresh o stack in base al parametro
     public void AggiungiBuff(CombatUnit unita, BuffDato buff, bool stack = false)
     {
@@ -149,6 +157,28 @@ public class ContestoCombattimento
     {
         if (stanceAttiva == null || stanceAttiva.effetti == null) return 0;
         foreach (var effetto in stanceAttiva.effetti)
+            if (effetto is EffettoModificatoreDifesa mod)
+                return mod.CalcolaDifesa(difensore);
+        return 0;
+    }
+
+    // Ritorna il BuffDato attivo con il nome specificato, null se non presente
+    public BuffDato GetBuff(CombatUnit unita, string nomeBuff)
+    {
+        var chiave = (unita, nomeBuff);
+        if (buffAttivi.ContainsKey(chiave))
+            return buffAttivi[chiave].buff;
+        return null;
+    }
+
+    public Dictionary<StanceTipo, AbilitaDato> stance = new Dictionary<StanceTipo, AbilitaDato>();
+
+    public int GetModificatoreDifesaPerStance(CombatUnit difensore, StanceTipo stanceTipo)
+    {
+        if (!stance.ContainsKey(stanceTipo)) return 0;
+        AbilitaDato stanceAbilita = stance[stanceTipo];
+        if (stanceAbilita?.effetti == null) return 0;
+        foreach (var effetto in stanceAbilita.effetti)
             if (effetto is EffettoModificatoreDifesa mod)
                 return mod.CalcolaDifesa(difensore);
         return 0;
