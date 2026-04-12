@@ -11,7 +11,7 @@ public class EffettoDifesa : EffettoAbilita
         public float moltiplicatore;
     }
 
-    public enum StatisticaScaling { FOR, DES, AUR, RES, INF, LV, Nessuno }
+    public enum StatisticaScaling { FOR, DES, AUR, RES, INF, LV, NEN_ATTUALE, Nessuno }
 
     public int difesaBase = 0;
     public ScalingEntry[] scalings;
@@ -22,9 +22,9 @@ public class EffettoDifesa : EffettoAbilita
         foreach (var s in scalings)
             difesaTotale += Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore);
 
-        contesto.difesaAccumulata += difesaTotale;
+        esecutore.difesaFase += difesaTotale;
         Debug.Log(esecutore.nomePersonaggio + " accumula " + difesaTotale +
-            " difesa — totale: " + contesto.difesaAccumulata);
+            " difesa — totale fase: " + esecutore.difesaFase);
     }
 
     int GetStatistica(CombatUnit unita, StatisticaScaling scaling)
@@ -36,6 +36,7 @@ public class EffettoDifesa : EffettoAbilita
             case StatisticaScaling.AUR: return unita.aura;
             case StatisticaScaling.RES: return unita.resistenza;
             case StatisticaScaling.LV: return unita.livello;
+            case StatisticaScaling.NEN_ATTUALE: return unita.GetNen();
             default: return 0;
         }
     }

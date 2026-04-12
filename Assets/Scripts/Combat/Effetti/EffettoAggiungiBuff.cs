@@ -7,10 +7,11 @@ public class EffettoAggiungiBuff : EffettoAbilita
     public BuffDato buff;
     public enum ComportamentoBuff { Refresh, Stack }
     public ComportamentoBuff comportamento = ComportamentoBuff.Refresh;
+    public TipoScalaturaDurata tipoScalatura = TipoScalaturaDurata.PerAzionePortatore;
 
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
     {
         if (buff == null) return;
-        esecutore.AggiungiBuff(new BuffAttivo(buff, esecutore, buff.durataAzioni, TipoScalaturaDurata.PerAzionePortatore));
+        esecutore.AggiungiBuff(new BuffAttivo(buff, esecutore, buff.durataAzioni, tipoScalatura));
     }
 }

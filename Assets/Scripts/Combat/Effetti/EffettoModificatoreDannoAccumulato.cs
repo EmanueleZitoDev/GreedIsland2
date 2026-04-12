@@ -14,11 +14,10 @@ public class EffettoModificatoreDannoAccumulato : EffettoAbilita
         // Verifica tag se necessario
         if (tagRichiesti != null && tagRichiesti.Length > 0)
         {
-            string[] tagsAbilita = contesto.abilitaCorrente?.tags;
-            if (tagsAbilita == null) return;
+            string[] tagsEffettivi = contesto.GetTagsEffettivi();
             bool trovato = false;
             foreach (string tagRichiesto in tagRichiesti)
-                foreach (string tag in tagsAbilita)
+                foreach (string tag in tagsEffettivi)
                     if (tag.Trim().ToLower() == tagRichiesto.Trim().ToLower())
                     { trovato = true; break; }
             if (!trovato) return;

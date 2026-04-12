@@ -46,6 +46,11 @@ public class CombatUnit : MonoBehaviour
     [Header("Combattimento")]
     public int azioniPerTurno = 3;
 
+    // Difesa calcolata a inizio fase dai buff attivi — valida per tutta la durata della fase
+    public int difesaFase = 0;
+
+    public void ResetDifesaFase() { difesaFase = 0; }
+
     // Stance corrente del combattente — aggiornata ad ogni azione eseguita
     [HideInInspector]
     public StanceTipo stanceCorrente = StanceTipo.Ten;
@@ -117,23 +122,20 @@ public class CombatUnit : MonoBehaviour
     {
         int difesa = 0;
 
-        if (contesto != null)
+        if (contesto != null && this.HaBuff("Parata"))
         {
-            if (this.HaBuff("Parata"))
-            {
-                // Esegui effetti parata — aggiungono difesa a difesaAccumulata
-                BuffAttivo buffParata = GetBuffAttivi().Find(b => b.dato != null && b.dato.nomeBuff == "Parata");
-                if (buffParata?.dato.effetti != null)
-                    foreach (var effetto in buffParata.dato.effetti)
-                        if (effetto != null)
-                            effetto.Esegui(this, null, contesto);
+            // Gli effetti della parata accumulano su difesaFase
+            BuffAttivo buffParata = GetBuffAttivi().Find(b => b.dato != null && b.dato.nomeBuff == "Parata");
+            if (buffParata?.dato.effetti != null)
+                foreach (var effetto in buffParata.dato.effetti)
+                    if (effetto != null)
+                        effetto.Esegui(this, null, contesto);
 
-                this.RimuoviBuff("Parata");
-            }
-
-            // Leggi difesaAccumulata una sola volta — include stance + parata
-            difesa += contesto.difesaAccumulata;
+            this.RimuoviBuff("Parata");
         }
+
+        // difesaFase include stance (calcolata a inizio fase) + eventuale parata
+        difesa += difesaFase;
 
         int dannoEffettivo = Mathf.Max(0, danno - difesa);
         hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);

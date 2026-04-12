@@ -14,6 +14,7 @@ public class CombatManager : MonoBehaviour
     public AbilitaDato attaccoFisicoBase;
 
     [Header("Stance")]
+    public BuffDato buffDatoTen;
     public BuffDato buffDatoRen;
 
     private int turnoCorrente = 1;
@@ -54,7 +55,9 @@ public class CombatManager : MonoBehaviour
         ApplicaPassive(giocatore);
         ApplicaPassive(mostro);
 
-        Debug.Log("=== COMBATTIMENTO INIZIATO ===");
+        Debug.Log("════════════════════════════════════════");
+        Debug.Log("  COMBATTIMENTO: " + giocatore.nomePersonaggio + " VS " + mostro.nomePersonaggio);
+        Debug.Log("════════════════════════════════════════");
         StartCoroutine(GestisciTurno());
         giocatore.MostraUI();
         mostro.MostraUI();
@@ -72,16 +75,20 @@ public class CombatManager : MonoBehaviour
         {
             if (abilita == null || !abilita.isPassiva || abilita.buffPassivo == null) continue;
             unita.AggiungiBuff(new BuffAttivo(abilita.buffPassivo, null, -1, TipoScalaturaDurata.PerAzionePortatore));
+            Debug.Log("[PASSIVA] " + unita.nomePersonaggio + " — " + abilita.nomeAbilita + " attiva come buff permanente");
         }
     }
 
     // Loop principale dei turni: raccoglie le azioni, costruisce il Turno e lo esegue fase per fase
     IEnumerator GestisciTurno()
     {
-        Debug.Log("GestisciTurno avviato");
         while (combattimentoAttivo)
         {
-            Debug.Log("--- Turno " + turnoCorrente + " ---");
+            Debug.Log("────────────────────────────────────────");
+            Debug.Log("  TURNO " + turnoCorrente
+                + "  |  " + giocatore.nomePersonaggio + " HP:" + giocatore.GetHP() + "/" + giocatore.GetHPMax() + " Nen:" + giocatore.GetNen() + "/" + giocatore.GetNenMax()
+                + "  |  " + mostro.nomePersonaggio + " HP:" + mostro.GetHP() + "/" + mostro.GetHPMax() + " Nen:" + mostro.GetNen() + "/" + mostro.GetNenMax());
+            Debug.Log("────────────────────────────────────────");
 
             for (int i = 0; i < azioniGiocatore.Length; i++)
                 azioniGiocatore[i] = null;
@@ -92,6 +99,7 @@ public class CombatManager : MonoBehaviour
             azioniConfermate = false;
             yield return new WaitUntil(() => azioniConfermate);
             inFaseSelezione = false;
+            Debug.Log("[PIANIFICAZIONE] " + giocatore.nomePersonaggio + " ha confermato le azioni");
 
             ScegliAzioniMostro();
 
@@ -103,8 +111,12 @@ public class CombatManager : MonoBehaviour
                 (mostro,    new List<Azione>(azioniMostro))
             });
 
+            Debug.Log("[TURNO] Struttura: " + turno.fasi.Count + " fasi, " + turno.personaggi.Count + " personaggi");
+
             foreach (Fase fase in turno.fasi)
             {
+                Debug.Log("  ── Fase " + (fase.indice + 1) + "/" + turno.fasi.Count
+                    + " — " + fase.azioni.Count + " azioni ──");
                 ApplicaStanceInizioFase(fase, turno.personaggi);
 
                 foreach (Azione azione in fase.azioni)
@@ -121,6 +133,9 @@ public class CombatManager : MonoBehaviour
 
             giocatore.RigeneraNen();
             mostro.RigeneraNen();
+            Debug.Log("[FINE TURNO " + turnoCorrente + "]"
+                + "  " + giocatore.nomePersonaggio + " HP:" + giocatore.GetHP() + " Nen:" + giocatore.GetNen()
+                + "  |  " + mostro.nomePersonaggio + " HP:" + mostro.GetHP() + " Nen:" + mostro.GetNen());
 
             turnoCorrente++;
         }
@@ -139,6 +154,11 @@ public class CombatManager : MonoBehaviour
             if (!renRiuscito)
                 azione.esecutore.stanceCorrente = StanceTipo.Ten;
         }
+
+        Debug.Log("[AZIONE] " + azione.esecutore.nomePersonaggio
+            + " usa \"" + (azione.abilitaAttiva?.nomeAbilita ?? "—") + "\""
+            + " [" + azione.esecutore.stanceCorrente + "]"
+            + " → " + azione.bersaglio.nomePersonaggio);
 
         contesto.esecutore = azione.esecutore;
         contesto.bersaglio = azione.bersaglio;
@@ -183,10 +203,15 @@ public class CombatManager : MonoBehaviour
                 if (!condizione.Valuta(azione.esecutore, azione.bersaglio, contesto))
                 { condizioniSoddisfatte = false; break; }
             }
-            if (!condizioniSoddisfatte) continue;
+            if (!condizioniSoddisfatte)
+            {
+                Debug.Log("  [BUFF] " + buffAttivo.dato.nomeBuff + " — condizioni non soddisfatte, saltato");
+                continue;
+            }
+            Debug.Log("  [BUFF] " + buffAttivo.dato.nomeBuff + " — effetti applicati");
             foreach (var effetto in buffAttivo.dato.effetti)
             {
-                if (effetto == null) continue;
+                if (effetto == null || effetto is EffettoDifesa) continue;
                 effetto.Esegui(azione.esecutore, azione.bersaglio, contesto);
             }
         }
@@ -201,7 +226,17 @@ public class CombatManager : MonoBehaviour
 
         // Infliggi il danno accumulato direttamente al bersaglio del contesto
         if (contesto.dannoAccumulato > 0)
+        {
+            Debug.Log("  [DANNO] " + azione.esecutore.nomePersonaggio
+                + " → " + contesto.dannoAccumulato + " danno lordo"
+                + " | difesa: " + azione.bersaglio.difesaFase
+                + " | danno netto: " + Mathf.Max(0, contesto.dannoAccumulato - azione.bersaglio.difesaFase));
             contesto.bersaglio.SubisciDanno(contesto.dannoAccumulato, contesto);
+        }
+        else
+        {
+            Debug.Log("  [DANNO] nessun danno accumulato");
+        }
     }
 
     // Riempie le azioni del mostro con attacchi fisici base in Ten (AI semplice)
@@ -303,12 +338,42 @@ public class CombatManager : MonoBehaviour
                 stanceEffettiva = azione != null ? azione.stancePianificata : personaggio.stanceCorrente;
             }
 
+            if (stanceForzata.HasValue)
+                Debug.Log("  [STANCE] " + personaggio.nomePersonaggio + " — stance forzata da buff: " + stanceEffettiva);
+            else if (personaggio.stanceCorrente != stanceEffettiva)
+                Debug.Log("  [STANCE] " + personaggio.nomePersonaggio + " — " + personaggio.stanceCorrente + " → " + stanceEffettiva);
+
             personaggio.stanceCorrente = stanceEffettiva;
+
+            if (stanceEffettiva == StanceTipo.Ten && !personaggio.HaBuff("Ten") && buffDatoTen != null)
+                personaggio.AggiungiBuff(new BuffAttivo(buffDatoTen, null, -1, TipoScalaturaDurata.PerAzionePortatore));
+            else if (stanceEffettiva != StanceTipo.Ten && personaggio.HaBuff("Ten"))
+                personaggio.RimuoviBuff("Ten");
 
             if (stanceEffettiva == StanceTipo.Ren && !personaggio.HaBuff("Ren") && buffDatoRen != null)
                 personaggio.AggiungiBuff(new BuffAttivo(buffDatoRen, null, -1, TipoScalaturaDurata.PerAzionePortatore));
             else if (stanceEffettiva != StanceTipo.Ren && personaggio.HaBuff("Ren"))
                 personaggio.RimuoviBuff("Ren");
+
+            // Ricalcola difesaFase: reset + ciclo buff attivi, solo EffettoDifesa
+            personaggio.ResetDifesaFase();
+            foreach (BuffAttivo buff in personaggio.GetBuffAttivi())
+            {
+                if (buff == null || buff.dato == null || buff.dato.effetti == null) continue;
+                bool condizioniSoddisfatte = true;
+                foreach (var condizione in buff.dato.condizioniAttivazione)
+                {
+                    if (!condizione.Valuta(personaggio, null, contesto))
+                    { condizioniSoddisfatte = false; break; }
+                }
+                if (!condizioniSoddisfatte) continue;
+                foreach (var effetto in buff.dato.effetti)
+                {
+                    if (effetto is EffettoDifesa)
+                        effetto.Esegui(personaggio, null, contesto);
+                }
+            }
+            Debug.Log("  [DIFESA] " + personaggio.nomePersonaggio + " — difesaFase: " + personaggio.difesaFase);
         }
     }
 

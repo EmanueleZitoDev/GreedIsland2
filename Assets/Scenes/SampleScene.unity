@@ -438,8 +438,8 @@ MonoBehaviour:
   giocatore: {fileID: 0}
   mostro: {fileID: 0}
   attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
-  stanceTen: {fileID: 11400000, guid: 377ca0e91443f1d4ba5c479039f9d5e9, type: 2}
-  stanceRen: {fileID: 11400000, guid: 242349ed00763fd4fb7fe048e89feb33, type: 2}
+  buffDatoTen: {fileID: 11400000, guid: 35e3ef6d8366475418cb5eb4f2489ef8, type: 2}
+  buffDatoRen: {fileID: 11400000, guid: 0c3c6cd936d8c21429ae91034de0b9db, type: 2}
 --- !u!4 &111283474
 Transform:
   m_ObjectHideFlags: 0
@@ -6374,6 +6374,7 @@ MonoBehaviour:
   testoHP: {fileID: 2030604817}
   testoNen: {fileID: 1526982865}
   azioniPerTurno: 3
+  difesaFase: 0
   stanceCorrente: 0
 --- !u!114 &1730245130
 MonoBehaviour:

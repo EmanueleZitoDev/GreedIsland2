@@ -9,8 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db6dfb48578d79648b94c1586f411817, type: 3}
-  m_Name: EffettoModificatoreDifesa
-  m_EditorClassIdentifier: Assembly-CSharp::EffettoModificatoreDifesa
+  m_Script: {fileID: 11500000, guid: e52d0f9877d522c46807cca7c9768497, type: 3}
+  m_Name: EffettoDifesa
+  m_EditorClassIdentifier: Assembly-CSharp::EffettoDifesa
   condizioni: []
-  percentualeNen: 0.1
+  difesaBase: 0
+  scalings:
+  - statistica: 6
+    moltiplicatore: 0.2
