@@ -437,9 +437,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   giocatore: {fileID: 0}
   mostro: {fileID: 0}
-  attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
-  buffDatoTen: {fileID: 11400000, guid: 35e3ef6d8366475418cb5eb4f2489ef8, type: 2}
-  buffDatoRen: {fileID: 11400000, guid: 0c3c6cd936d8c21429ae91034de0b9db, type: 2}
 --- !u!4 &111283474
 Transform:
   m_ObjectHideFlags: 0
@@ -6374,8 +6371,11 @@ MonoBehaviour:
   testoHP: {fileID: 2030604817}
   testoNen: {fileID: 1526982865}
   azioniPerTurno: 3
-  difesaFase: 0
+  attaccoFisicoBase: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
+  buffDatoTen: {fileID: 11400000, guid: 35e3ef6d8366475418cb5eb4f2489ef8, type: 2}
+  buffDatoRen: {fileID: 11400000, guid: 0c3c6cd936d8c21429ae91034de0b9db, type: 2}
   stanceCorrente: 0
+  canChangeStance: 1
 --- !u!114 &1730245130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7268,6 +7268,22 @@ PrefabInstance:
       propertyPath: hpBase
       value: 10000
       objectReference: {fileID: 0}
+    - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
+      propertyPath: destrezza
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
+      propertyPath: buffDatoRen
+      value: 
+      objectReference: {fileID: 11400000, guid: 0c3c6cd936d8c21429ae91034de0b9db, type: 2}
+    - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
+      propertyPath: buffDatoTen
+      value: 
+      objectReference: {fileID: 11400000, guid: 35e3ef6d8366475418cb5eb4f2489ef8, type: 2}
+    - target: {fileID: 1145011574046971589, guid: 93486855e146af24fa75d6460356df21, type: 3}
+      propertyPath: attaccoFisicoBase
+      value: 
+      objectReference: {fileID: 11400000, guid: 9b54089b5f5f5db439d6be7bddb24230, type: 2}
     - target: {fileID: 2165540588389883387, guid: 93486855e146af24fa75d6460356df21, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0

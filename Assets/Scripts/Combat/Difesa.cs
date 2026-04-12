@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using static EffettoDanno;
+﻿using static EffettoDanno;
 
 public class Difesa
 {

@@ -16,8 +16,6 @@ MonoBehaviour:
   durataAzioni: -1
   condizioniAttivazione: []
   effetti:
-  - {fileID: 11400000, guid: 033520b910dd7724f9307e5948adcee8, type: 2}
-  - {fileID: 11400000, guid: 356d6d85a36efb14297acac4d3bc2a06, type: 2}
-  - {fileID: 11400000, guid: f77f520d2396516469f0b8613158c4e6, type: 2}
-  - {fileID: 11400000, guid: 1a17d4baecea6d7448977f05c24658b2, type: 2}
-  tags: []
+  - {fileID: 11400000, guid: b75dfa635bcdf744fa03fbfa3d3be0c3, type: 2}
+  - {fileID: 11400000, guid: 5fe057f3c0dccdf42aa94862ac686f70, type: 2}
+  - {fileID: 11400000, guid: c901185396f19b94695ef1dc3626a984, type: 2}

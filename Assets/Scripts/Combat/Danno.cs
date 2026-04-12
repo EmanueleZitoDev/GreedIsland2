@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using NUnit.Framework;
 using static EffettoDanno;
 
 public class Danno
@@ -8,6 +7,7 @@ public class Danno
     public string[] tags;
     public string[] ignoraTagsScudo; //se lo scudo del bersaglio ha uno di questi tag, ignora il suo valore
     public string fonte; // per tracciare da dove proviene il danno (es. nome dell'abilità o del buff che lo ha generato)
+    public bool isFromBuff;
     public CombatUnit esecutore;
     public List<CombatUnit> targets;
     public ScalingEntry[] scalings;

@@ -10,13 +10,6 @@ public class CombatManager : MonoBehaviour
     public CombatUnit giocatore;
     public CombatUnit mostro;
 
-    [Header("Abilità Base")]
-    public AbilitaDato attaccoFisicoBase;
-
-    [Header("Stance")]
-    public BuffDato buffDatoTen;
-    public BuffDato buffDatoRen;
-
     private int turnoCorrente = 1;
     private bool combattimentoAttivo = false;
     private bool inFaseSelezione = false;
@@ -52,44 +45,27 @@ public class CombatManager : MonoBehaviour
         ApplicaPassive(giocatore);
         ApplicaPassive(mostro);
 
-        ApplicaStance(giocatore);
-        ApplicaStance(mostro);
+        giocatore.AssumiStance(giocatore.stanceCorrente);
+        mostro.AssumiStance(mostro.stanceCorrente);
 
-
-        Debug.Log("════════════════════════════════════════");
-        Debug.Log("  COMBATTIMENTO: " + giocatore.nomePersonaggio + " VS " + mostro.nomePersonaggio);
-        Debug.Log("════════════════════════════════════════");
+        //Debug.Log("════════════════════════════════════════");
+        //Debug.Log("  COMBATTIMENTO: " + giocatore.nomePersonaggio + " VS " + mostro.nomePersonaggio);
+        //Debug.Log("════════════════════════════════════════");
         StartCoroutine(GestisciTurno());
         giocatore.MostraUI();
         mostro.MostraUI();
         CombatUI.Instance.MostraCombatUI();
     }
-
-    // Le abilità passive vengono aggiunte come BuffAttivo permanente (durata -1).
-    // Vengono valutate ogni azione come qualunque altro buff attivo.
-    void ApplicaPassive(CombatUnit unita)
-    {
-        SkillTreePersonaggio skillTree = unita.GetComponent<SkillTreePersonaggio>();
-        if (skillTree == null) return;
-
-        foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)
-        {
-            if (abilita == null || !abilita.isPassiva || abilita.buffPassivo == null) continue;
-            unita.AggiungiBuffSelf(new BuffAttivo(abilita.buffPassivo, null, -1, TipoScalaturaDurata.PerAzionePortatore));
-            Debug.Log("[PASSIVA] " + unita.nomePersonaggio + " — " + abilita.nomeAbilita + " attiva come buff permanente");
-        }
-    }
-
     // Loop principale dei turni: raccoglie le azioni, costruisce il Turno e lo esegue fase per fase
     IEnumerator GestisciTurno()
     {
         while (combattimentoAttivo)
         {
             Debug.Log("────────────────────────────────────────");
-            Debug.Log("  TURNO " + turnoCorrente
-                + "  |  " + giocatore.nomePersonaggio + " HP:" + giocatore.GetHP() + "/" + giocatore.GetHPMax() + " Nen:" + giocatore.GetNen() + "/" + giocatore.GetNenMax()
-                + "  |  " + mostro.nomePersonaggio + " HP:" + mostro.GetHP() + "/" + mostro.GetHPMax() + " Nen:" + mostro.GetNen() + "/" + mostro.GetNenMax());
-            Debug.Log("────────────────────────────────────────");
+            Debug.Log("  TURNO " + turnoCorrente);
+            //    + "  |  " + giocatore.nomePersonaggio + " HP:" + giocatore.GetHP() + "/" + giocatore.GetHPMax() + " Nen:" + giocatore.GetNen() + "/" + giocatore.GetNenMax()
+            //    + "  |  " + mostro.nomePersonaggio + " HP:" + mostro.GetHP() + "/" + mostro.GetHPMax() + " Nen:" + mostro.GetNen() + "/" + mostro.GetNenMax());
+            //Debug.Log("────────────────────────────────────────");
 
             for (int i = 0; i < azioniGiocatore.Length; i++)
                 azioniGiocatore[i] = null;
@@ -113,25 +89,49 @@ public class CombatManager : MonoBehaviour
                 (mostro,    new List<Azione>(azioniMostro))
             });
 
-            Debug.Log("[TURNO] Struttura: " + turno.fasi.Count + " fasi, " + turno.personaggi.Count + " personaggi");
+            //Debug.Log("[TURNO] Struttura: " + turno.fasi.Count + " fasi, " + turno.personaggi.Count + " personaggi");
 
             foreach (Fase fase in turno.fasi)
             {
                 Debug.Log("  ── Fase " + (fase.indice + 1) + "/" + turno.fasi.Count
                     + " — " + fase.azioni.Count + " azioni ──");
-                //ApplicaStanceInizioFase(fase, turno.personaggi);
+
+                //inizializza le azioni pianificate sui personaggi in modo che siano accessibili durante l'esecuzione del turno (per stance e altri effetti)
+                foreach (Azione azione in fase.azioni)
+                {
+                    azione.esecutore.azionePianificata = azione;
+                }
+                //calcola difesa e altri effetti che dipendono dalla stance all'inizio della fase
+                foreach (CombatUnit personaggio in turno.personaggi)
+                {
+                    if (personaggio.CanPlay(fase))
+                    {
+                        if (personaggio.canChangeStance)
+                        {
+                            Debug.Log("    [AZIONE] " + personaggio.name + " assume stance " + personaggio.azionePianificata.stancePianificata);
+
+                            personaggio.AssumiStance(personaggio.azionePianificata.stancePianificata);
+                        }
+                        personaggio.CalcolaDifesa();
+                    }
+                }
 
                 foreach (Azione azione in fase.azioni)
                 {
-                    yield return StartCoroutine(azione.esecutore.EseguiAzione(azione));
+                    yield return StartCoroutine(azione.esecutore.SvolgiAzione());
                     if (VerificaFine()) yield break;
-                    
+
                     azione.esecutore.ScalaBuffPerAzionePortatore();
                     azione.esecutore.ScalaBuffPerAzioneCaster(azione.esecutore);
-                
+
                     yield return new WaitForSeconds(0.5f);
                 }
 
+                foreach (CombatUnit personaggio in turno.personaggi)
+                {
+                    personaggio.dannoTotale.Clear();
+                    personaggio.difesaTotale.Clear();
+                }
                 // Fine fase — scala i buff PerFase su tutti i personaggi
                 giocatore.ScalaBuffPerFase();
                 mostro.ScalaBuffPerFase();
@@ -147,11 +147,28 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    // Le abilità passive vengono aggiunte come BuffAttivo permanente (durata -1).
+    // Vengono valutate ogni azione come qualunque altro buff attivo.
+    void ApplicaPassive(CombatUnit unita)
+    {
+        SkillTreePersonaggio skillTree = unita.GetComponent<SkillTreePersonaggio>();
+        if (skillTree == null) return;
+
+        foreach (AbilitaDato abilita in skillTree.abilitaSbloccate)
+        {
+            if (abilita == null || !abilita.isPassiva || abilita.buffPassivo == null) continue;
+            unita.AggiungiBuffSelf(new BuffAttivo(abilita.buffPassivo, null, -1, TipoScalaturaDurata.PerAzionePortatore));
+            Debug.Log("[PASSIVA] " + unita.nomePersonaggio + " — " + abilita.nomeAbilita + " attiva come buff permanente");
+        }
+    }
+
+
+
     // Riempie le azioni del mostro con attacchi fisici base in Ten (AI semplice)
     void ScegliAzioniMostro()
     {
         for (int i = 0; i < mostro.azioniPerTurno; i++)
-            azioniMostro[i] = new Azione(mostro, giocatore, attaccoFisicoBase, StanceTipo.Ten);
+            azioniMostro[i] = new Azione(mostro, new List<CombatUnit> { giocatore }, mostro.attaccoFisicoBase, StanceTipo.Ten);
     }
 
     // Controlla se uno dei due combattenti è morto e termina il combattimento di conseguenza
@@ -195,7 +212,7 @@ public class CombatManager : MonoBehaviour
     public void AggiungiAbilitaGiocatore(AbilitaDato abilita, StanceTipo stance, int indiceSlot)
     {
         if (!combattimentoAttivo || !inFaseSelezione) return;
-        azioniGiocatore[indiceSlot] = new Azione(giocatore, mostro, abilita, stance);
+        azioniGiocatore[indiceSlot] = new Azione(giocatore, new List<CombatUnit> { mostro }, abilita, stance);
     }
 
     // Svuota lo slot all'indice indicato rimuovendo l'azione assegnata
