@@ -395,7 +395,7 @@ public class CombatUnit : MonoBehaviour
                 return;
             }
         }
-        // Consuma il Nen
+        // Consuma HP
         if (azione.abilitaAttiva.costoHP > 0)
         {
             bool ok = ConsumaHP(azione.abilitaAttiva.costoNen);
@@ -413,7 +413,7 @@ public class CombatUnit : MonoBehaviour
             bool condizioniSoddisfatte = true;
             foreach (var condizione in buffAttivo.dato.condizioniAttivazione)
             {
-                if (!condizione.Valuta(this, azione.bersaglio,azione))
+                if (!condizione.Valuta(this, azione.bersaglio, azione))
                 { condizioniSoddisfatte = false; break; }
             }
             if (!condizioniSoddisfatte)
@@ -425,7 +425,7 @@ public class CombatUnit : MonoBehaviour
             foreach (var effetto in buffAttivo.dato.effetti)
             {
                 if (effetto == null || effetto is EffettoDifesa) continue;
-                effetto.Esegui(this, azione.bersaglio,azione);
+                effetto.Esegui(this, azione.bersaglio, azione);
             }
         }
 
@@ -434,7 +434,7 @@ public class CombatUnit : MonoBehaviour
         {
             if (effetto == null) continue;
             if (effetto.CondizioneSoddisfatta(this, azione.bersaglio, azione))
-                effetto.Esegui(this, azione.bersaglio,azione);
+                effetto.Esegui(this, azione.bersaglio, azione);
         }
     }
 
@@ -479,7 +479,7 @@ public class CombatUnit : MonoBehaviour
 
     internal void Para()
     {
-        
+
     }
 
     internal void InfliggiDanno(EffettoDanno effettoDanno, Azione azione, CombatUnit bersaglio)
@@ -490,7 +490,7 @@ public class CombatUnit : MonoBehaviour
             bool condizioniSoddisfatte = true;
             foreach (var condizione in buff.dato.condizioniAttivazione)
             {
-                if (!condizione.Valuta(this, bersaglio,azione))
+                if (!condizione.Valuta(this, bersaglio, azione))
                 { condizioniSoddisfatte = false; break; }
             }
             if (!condizioniSoddisfatte)
@@ -502,12 +502,15 @@ public class CombatUnit : MonoBehaviour
             foreach (var effetto in buff.dato.effetti)
             {
                 if (effetto == null || !(effetto is EffettoDifesa)) continue;
-                effetto.Esegui(this, bersaglio,azione);
+                effetto.Esegui(this, bersaglio, azione);
             }
         }
-        int dannoTotale = effettoDanno.dannoBase;
+        List<Danno> dannoTotale = new List<Danno>();
+        dannoTotale.Add(new Danno(effettoDanno.dannoBase, effettoDanno.tagsAbilita, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }));
         foreach (var s in effettoDanno.scalings)
-            dannoTotale += Mathf.FloorToInt(GetStatistica(this, s.statistica) * s.moltiplicatore);
+            dannoTotale.Add(new Danno(Mathf.FloorToInt(GetStatistica(this, s.statistica) * s.moltiplicatore), effettoDanno.tagsAbilita, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }));
+    
+        //bersaglio.
     }
 
     // Restituisce il valore numerico della statistica richiesta dall'unità
