@@ -6,16 +6,16 @@ public abstract class EffettoAbilita : ScriptableObject
     public CondizioneAbilita[] condizioni;
 
     // Verifica se tutte le condizioni sono soddisfatte
-    public bool CondizioneSoddisfatta(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public bool CondizioneSoddisfatta(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         foreach (var condizione in condizioni)
         {
-            if (!condizione.Valuta(esecutore, bersaglio, contesto))
+            if (!condizione.Valuta(esecutore, bersaglio, azione))
                 return false;
         }
         return true;
     }
 
     // Override nelle sottoclassi
-    public abstract void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto);
+    public abstract void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione);
 }

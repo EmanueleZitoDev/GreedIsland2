@@ -8,10 +8,10 @@ public class CondizioneTagAbilita : CondizioneAbilita
     public enum ModalitaControllo { AND, OR }
     public ModalitaControllo modalita = ModalitaControllo.AND;
 
-    public override bool Valuta(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override bool Valuta(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
-        if (contesto.abilitaCorrente == null) return false;
-        if (contesto.abilitaCorrente.tags == null) return false;
+        if (azione.abilitaAttiva == null) return false;
+        if (azione.abilitaAttiva.tags == null) return false;
 
         if (modalita == ModalitaControllo.AND)
         {
@@ -19,7 +19,7 @@ public class CondizioneTagAbilita : CondizioneAbilita
             foreach (string tagRichiesto in tagRichiesti)
             {
                 bool trovato = false;
-                foreach (string tag in contesto.abilitaCorrente.tags)
+                foreach (string tag in azione.abilitaAttiva.tags)
                     if (tag.Trim().ToLower() == tagRichiesto.Trim().ToLower())
                     { trovato = true; break; }
                 if (!trovato) return false;
@@ -30,7 +30,7 @@ public class CondizioneTagAbilita : CondizioneAbilita
         {
             // Almeno uno dei tag richiesti deve essere presente
             foreach (string tagRichiesto in tagRichiesti)
-                foreach (string tag in contesto.abilitaCorrente.tags)
+                foreach (string tag in azione.abilitaAttiva.tags)
                     if (tag.Trim().ToLower() == tagRichiesto.Trim().ToLower())
                         return true;
             return false;

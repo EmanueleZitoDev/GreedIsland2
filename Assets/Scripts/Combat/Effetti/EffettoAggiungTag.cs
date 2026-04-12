@@ -5,9 +5,9 @@ public class EffettoAggiungTag : EffettoAbilita
 {
     public string[] tagDaAggiungere;
 
-    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         foreach (string tag in tagDaAggiungere)
-            contesto.AggiungiTag(tag);
+            azione.abilitaAttiva.AggiungiTag(tag);
     }
 }

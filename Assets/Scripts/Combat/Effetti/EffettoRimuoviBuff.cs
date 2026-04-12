@@ -6,11 +6,11 @@ public class EffettoRimuoviBuff : EffettoAbilita
     public string[] buffDaRimuovere;
 
     // Rimuove dal contesto tutti i buff elencati in buffDaRimuovere per l'esecutore
-    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         foreach (string buff in buffDaRimuovere)
         {
-            esecutore.RimuoviBuff(buff);
+            esecutore.RimuoviBuffSelf(buff);
             Debug.Log("Buff rimosso: " + buff);
         }
     }

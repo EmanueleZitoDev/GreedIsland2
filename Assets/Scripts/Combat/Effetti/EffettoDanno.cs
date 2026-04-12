@@ -17,24 +17,11 @@ public class EffettoDanno : EffettoAbilita
     public string[] tagsAbilita;
 
     // Calcola il danno in base a dannoBase + scalings, applica il modificatore della stance e infligge i danni al bersaglio
-    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         int dannoTotale = dannoBase;
-        foreach (var s in scalings)
-            dannoTotale += Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore);
 
-        // Accumula il danno nel contesto invece di infliggerlo subito
-        contesto.dannoAccumulato += dannoTotale;
-
-        //Debug.Log(esecutore.nomePersonaggio + " accumula " + dannoTotale + " danni — totale: " + contesto.dannoAccumulato);
-
-        // Rimuovi buff richiesti dalle condizioni
-        foreach (var condizione in condizioni)
-        {
-            if (condizione is CondizioneBuffAttivi condBuff)
-                foreach (string buff in condBuff.buffRichiesti)
-                    esecutore.RimuoviBuff(buff);
-        }
+        esecutore.InfliggiDanno(this, azione, bersaglio);
     }
 
     // Restituisce il valore numerico della statistica richiesta dall'unità

@@ -16,15 +16,15 @@ public class EffettoDifesa : EffettoAbilita
     public int difesaBase = 0;
     public ScalingEntry[] scalings;
 
-    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         int difesaTotale = difesaBase;
         foreach (var s in scalings)
             difesaTotale += Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore);
 
-        esecutore.difesaFase += difesaTotale;
-        Debug.Log(esecutore.nomePersonaggio + " accumula " + difesaTotale +
-            " difesa — totale fase: " + esecutore.difesaFase);
+        esecutore.scudoParata += difesaTotale;
+        //Debug.Log(esecutore.nomePersonaggio + " accumula " + difesaTotale +
+        //    " difesa — totale fase: " + esecutore.difesaFase);
     }
 
     int GetStatistica(CombatUnit unita, StatisticaScaling scaling)

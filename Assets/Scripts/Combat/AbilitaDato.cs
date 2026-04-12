@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum TipoAzione
@@ -25,6 +26,7 @@ public class AbilitaDato : ScriptableObject
     public TipoAzione tipoAzione;
     public bool isPassiva;
     public int costoNen;
+    public int costoHP;
     public int priorita = 3;
     public string[] tags;
 
@@ -34,4 +36,29 @@ public class AbilitaDato : ScriptableObject
     [Header("Effetti")]
     public EffettoAbilita[] effetti;
 
+    internal void AggiungiTag(string tag)
+    {
+        tags = AggiungiTagAArray(tags, tag);
+    }
+
+    private string[] AggiungiTagAArray(string[] tags, string tag)
+    {
+        if (tags == null)
+        {
+            return new string[] { tag };
+        }
+
+        foreach (string t in tags)
+        {
+            if (t == tag)
+            {
+                return tags; // Il tag è già presente, non aggiungerlo
+            }
+        }
+
+        string[] newTags = new string[tags.Length + 1];
+        Array.Copy(tags, newTags, tags.Length);
+        newTags[newTags.Length - 1] = tag;
+        return newTags;
+    }
 }

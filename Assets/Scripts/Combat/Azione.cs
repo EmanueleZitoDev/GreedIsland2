@@ -18,4 +18,5 @@ public class Azione
         this.abilitaAttiva = abilitaAttiva;
         this.stancePianificata = stancePianificata;
     }
+
 }

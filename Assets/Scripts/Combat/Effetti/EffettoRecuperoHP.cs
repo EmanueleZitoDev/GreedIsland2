@@ -7,7 +7,7 @@ public class EffettoRecuperoHP : EffettoAbilita
     public float moltiplicatoreRes = 0.3f;
 
     // Cura l'esecutore di baseRecupero + (resistenza × moltiplicatoreRes) HP
-    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, ContestoCombattimento contesto)
+    public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
         int quantita = baseRecupero + Mathf.FloorToInt(esecutore.resistenza * moltiplicatoreRes);
         esecutore.RiceviCura(quantita);

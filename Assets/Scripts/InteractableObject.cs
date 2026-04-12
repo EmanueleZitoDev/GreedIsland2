@@ -132,7 +132,7 @@ public class InteractableObject : MonoBehaviour
         if (unitaMostro != null) unitaMostro.ResetCombattimento();
         if (unitaGiocatore != null) unitaGiocatore.stanceCorrente = StanceTipo.Ten;
         if (unitaMostro != null) unitaMostro.stanceCorrente = StanceTipo.Ten;
-        CombatManager.Instance.ResetContesto();
+        //CombatManager.Instance.ResetContesto();
 
         Debug.Log("Combattimento terminato");
     }
