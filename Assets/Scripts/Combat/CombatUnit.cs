@@ -57,7 +57,8 @@ public class CombatUnit : MonoBehaviour
     //lista di tag che non possono essere utilizzati da questo personaggio. viene manipolata da debuff e controllata dalle abilità prima dell'esecuzione
     private List<string> tagBloccati = new List<string>();
 
-    public int scudoParata = 0;
+    public List<Difesa> difesaTotale = new List<Difesa>();
+    //public int scudoParata = 0;
     // Aggiunge un buff. Se un buff con lo stesso nome è già presente lo sostituisce (refresh).
 
     public void AggiungiBuffTarget(BuffAttivo buff, CombatUnit target)
@@ -477,10 +478,11 @@ public class CombatUnit : MonoBehaviour
         return true;
     }
 
-    internal void Para()
-    {
+    //internal void Para()
+    //{
 
-    }
+    //    difesaTotale.Add(new Difesa(9999, new string[] { "Parata" }, "Parata"));
+    //}
 
     internal void InfliggiDanno(EffettoDanno effettoDanno, Azione azione, CombatUnit bersaglio)
     {
@@ -506,12 +508,63 @@ public class CombatUnit : MonoBehaviour
             }
         }
         List<Danno> dannoTotale = new List<Danno>();
-        dannoTotale.Add(new Danno(effettoDanno.dannoBase, effettoDanno.tagsAbilita, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }));
+        dannoTotale.Add(new Danno(effettoDanno.dannoBase, effettoDanno.tagsEffetto, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }, effettoDanno.ignoraTagsScudo));
         foreach (var s in effettoDanno.scalings)
-            dannoTotale.Add(new Danno(Mathf.FloorToInt(GetStatistica(this, s.statistica) * s.moltiplicatore), effettoDanno.tagsAbilita, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }));
-    
-        //bersaglio.
+            dannoTotale.Add(new Danno(Mathf.FloorToInt(GetStatistica(this, s.statistica) * s.moltiplicatore), effettoDanno.tagsEffetto, azione.abilitaAttiva.nomeAbilita, this, new List<CombatUnit> { bersaglio }, effettoDanno.ignoraTagsScudo));
+
+        bersaglio.SubisciDanno(dannoTotale);
     }
+
+    public int SubisciDanno(List<Danno> dannoTotale)
+    {
+        int difesaTotaleValue = 0;
+        List<Difesa> difesaTotaleTemp = new List<Difesa>();
+        //copia difesa totale per evitare problemi di modifica durante l'iterazione
+        difesaTotaleTemp.AddRange(difesaTotale);
+
+        //rimuove difese bloccate dai tag di danno
+        foreach (Danno danno in dannoTotale)
+        {
+            if (danno == null) continue;
+            foreach (string tag in danno.tags)
+            {
+                difesaTotaleTemp.RemoveAll(d => d.tags.Contains(tag));
+            }
+        }
+
+        foreach (Difesa def in difesaTotaleTemp)
+        {
+            if (CanUseDefense(def))
+            {
+                difesaTotaleValue += def.valore;
+            }
+        }
+
+        int dannoTotaleValue = dannoTotale.Sum(d => d.valore);
+
+        int dannoEffettivo = Mathf.Max(0, dannoTotaleValue - difesaTotaleValue);
+        hpAttuali = Mathf.Max(0, hpAttuali - dannoEffettivo);
+        AggiornaBarre();
+        Debug.Log(nomePersonaggio + " subisce " + dannoEffettivo +
+            " danni (difesa totale: " + difesaTotaleValue + "). HP: " + hpAttuali + "/" + hpMax);
+        return dannoEffettivo;
+    }
+
+    private bool CanUseDefense(Difesa defense)
+    {
+        if (defense == null) return false;
+
+        foreach (string tag in defense.tags)
+        {
+            if (tagBloccati.Contains(tag))
+            {
+                Debug.Log(nomePersonaggio + " non può utilizzare difesa " + defense.fonte + " a causa del tag bloccato: " + tag);
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     // Restituisce il valore numerico della statistica richiesta dall'unità
     int GetStatistica(CombatUnit unita, StatisticaScaling scaling)

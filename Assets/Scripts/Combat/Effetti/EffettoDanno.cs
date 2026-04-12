@@ -14,13 +14,12 @@ public class EffettoDanno : EffettoAbilita
 
     public int dannoBase = 0;
     public ScalingEntry[] scalings;
-    public string[] tagsAbilita;
+    public string[] tagsEffetto;
+    public string[] ignoraTagsScudo;
 
     // Calcola il danno in base a dannoBase + scalings, applica il modificatore della stance e infligge i danni al bersaglio
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
-        int dannoTotale = dannoBase;
-
         esecutore.InfliggiDanno(this, azione, bersaglio);
     }
 }

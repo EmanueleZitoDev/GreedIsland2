@@ -52,6 +52,10 @@ public class CombatManager : MonoBehaviour
         ApplicaPassive(giocatore);
         ApplicaPassive(mostro);
 
+        ApplicaStance(giocatore);
+        ApplicaStance(mostro);
+
+
         Debug.Log("════════════════════════════════════════");
         Debug.Log("  COMBATTIMENTO: " + giocatore.nomePersonaggio + " VS " + mostro.nomePersonaggio);
         Debug.Log("════════════════════════════════════════");

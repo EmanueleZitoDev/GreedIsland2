@@ -18,13 +18,9 @@ public class EffettoDifesa : EffettoAbilita
 
     public override void Esegui(CombatUnit esecutore, CombatUnit bersaglio, Azione azione)
     {
-        int difesaTotale = difesaBase;
+        esecutore.difesaTotale.Add(new Difesa(difesaBase, azione.abilitaAttiva.tags, azione.abilitaAttiva.name));
         foreach (var s in scalings)
-            difesaTotale += Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore);
-
-        esecutore.scudoParata += difesaTotale;
-        //Debug.Log(esecutore.nomePersonaggio + " accumula " + difesaTotale +
-        //    " difesa — totale fase: " + esecutore.difesaFase);
+            esecutore.difesaTotale.Add(new Difesa(Mathf.FloorToInt(GetStatistica(esecutore, s.statistica) * s.moltiplicatore), azione.abilitaAttiva.tags, azione.abilitaAttiva.name));
     }
 
     int GetStatistica(CombatUnit unita, StatisticaScaling scaling)

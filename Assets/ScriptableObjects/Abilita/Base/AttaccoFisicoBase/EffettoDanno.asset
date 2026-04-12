@@ -19,4 +19,7 @@ MonoBehaviour:
     moltiplicatore: 1
   - statistica: 5
     moltiplicatore: 1
-  tagsAbilita: []
+  tagsEffetto:
+  - '[mani nude]'
+  - '[corpo a corpo]'
+  ignoraTagsScudo: []
